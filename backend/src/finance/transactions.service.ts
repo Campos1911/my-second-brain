@@ -72,8 +72,9 @@ export class TransactionsService {
 
     // Se mês e ano forem providos, filtra pelo intervalo de data
     if (year && month) {
-      const startDate = new Date(year, month - 1, 1); // Primeiro dia do mês (month é 1-based na API)
-      const endDate = new Date(year, month, 1); // Primeiro dia do próximo mês (exclusivo)
+      // Date.UTC() cria o timestamp sem sofrer distorção de fuso horário do servidor
+      const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+      const endDate = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
 
       whereClause.date = {
         gte: startDate,

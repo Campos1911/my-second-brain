@@ -3,7 +3,7 @@
 import { useDeleteTransaction } from "../hooks/useFinance";
 import { motion, AnimatePresence } from "framer-motion";
 import { ArrowDownIcon, ArrowUpIcon, Trash2, Wallet } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
+import { formatCurrency, parseUTCToLocalDate } from "@/lib/utils";
 import { Transaction } from "../types";
 
 interface TransactionListProps {
@@ -57,6 +57,9 @@ export function TransactionList({
         {transactions.map((tx) => {
           const isIncome = tx.category?.type === "INCOME";
 
+          // Normaliza a data para fuso local mantendo o calendário original
+          const localNormalizedDate = parseUTCToLocalDate(tx.date);
+
           return (
             <motion.div
               key={tx.id}
@@ -80,7 +83,7 @@ export function TransactionList({
                     {tx.description}
                   </p>
                   <p className="text-[10px] sm:text-xs text-muted-foreground">
-                    {new Date(tx.date).toLocaleDateString("pt-BR")}
+                    {localNormalizedDate.toLocaleDateString("pt-BR")}
                   </p>
                 </div>
               </div>
