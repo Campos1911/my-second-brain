@@ -34,8 +34,16 @@ export class TransactionsController {
     @Query('limit', new ParseIntPipe({ optional: true })) limit?: number,
     @Query('month', new ParseIntPipe({ optional: true })) month?: number,
     @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+    @Query('categoryIds') categoryIds?: string | string[],
   ) {
-    return this.transactionsService.findAll(userId, page, limit, month, year);
+    return this.transactionsService.findAll(
+      userId,
+      page,
+      limit,
+      month,
+      year,
+      categoryIds,
+    );
   }
 
   @Get(':id')

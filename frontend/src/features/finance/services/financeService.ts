@@ -26,11 +26,23 @@ export const financeService = {
     limit?: number;
     month?: number;
     year?: number;
+    categoryIds?: string[];
   }): Promise<PaginatedResponse<Transaction>> {
+    // Normaliza os parâmetros para o formato esperado pelo backend
+    const queryParams = params
+      ? {
+          ...params,
+          categoryIds:
+            params.categoryIds && params.categoryIds.length > 0
+              ? params.categoryIds.join(",")
+              : undefined,
+        }
+      : undefined;
+
     const response = await api.get<PaginatedResponse<Transaction>>(
       "/transactions",
       {
-        params,
+        params: queryParams,
       },
     );
     return response.data;

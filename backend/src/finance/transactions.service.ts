@@ -61,11 +61,12 @@ export class TransactionsService {
     limit = 20,
     month?: number,
     year?: number,
+    categoryIds?: string | string[],
   ) {
     const skip = (page - 1) * limit;
 
     // Monta dinamicamente a cláusula where do Prisma
-    const whereClause: any = {
+    const whereClause: Prisma.TransactionWhereInput = {
       userId,
       deletedAt: null,
     };
@@ -80,6 +81,22 @@ export class TransactionsService {
         gte: startDate,
         lt: endDate,
       };
+    }
+
+    // Filtro por Categorias (Suporta ID único, array de IDs ou string separada por vírgula)
+    if (categoryIds) {
+      const parsedCategoryIds = Array.isArray(categoryIds)
+        ? categoryIds
+        : categoryIds
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean);
+
+      if (parsedCategoryIds.length > 0) {
+        whereClause.categoryId = {
+          in: parsedCategoryIds,
+        };
+      }
     }
 
     // Promise.all para performance: busca total e dados em paralelo
