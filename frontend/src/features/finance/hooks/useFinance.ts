@@ -7,6 +7,7 @@ interface UseTransactionsFilters {
   limit: number;
   month: number;
   year: number;
+  categoryIds?: string[]; // Adicionado: suporte opcional para filtro de categorias
 }
 
 // --- Queries (Leitura) ---
@@ -25,13 +26,14 @@ export function useCategories() {
 
 export function useTransactions(filters: UseTransactionsFilters) {
   return useQuery({
-    queryKey: ["transactions", filters],
+    queryKey: ["transactions", filters], // O Tanstack Query rastreia automaticamente mudanças no objeto filters completo
     queryFn: async () => {
       const response = await financeService.getTransactions({
         page: filters.page,
         limit: filters.limit,
         month: filters.month,
         year: filters.year,
+        categoryIds: filters.categoryIds, // Adicionado: repassado para o serviço da API
       });
       return response;
     },
