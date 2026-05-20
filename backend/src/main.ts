@@ -8,7 +8,7 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
   app.enableCors({
-    origin: 'http://localhost:3000',
+    origin: 'https://my-second-brain-orpin.vercel.app',
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE',
     credentials: true,
   });
@@ -23,13 +23,14 @@ async function bootstrap() {
 
   const configService = app.get(ConfigService);
   const databaseUrl = configService.get<string>('DATABASE_URL');
-  const port = configService.get<number>('PORT') || 3333;
+
+  const port = process.env.PORT || configService.get<string>('PORT') || 8080;
 
   logger.log(
     `Conectando ao banco: ${databaseUrl ? 'OK (URL Carregada)' : 'ERRO (URL não encontrada)'}`,
   );
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
   logger.log(`Aplicação rodando na porta: ${port}`);
 }
 bootstrap();
