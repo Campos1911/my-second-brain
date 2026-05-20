@@ -16,8 +16,8 @@ interface TransactionListProps {
   transactions: Transaction[];
   isLoading: boolean;
   isError: boolean;
-  hasActiveFilters: boolean; // Adicionado
-  onClearFilters?: () => void; // Adicionado para facilitar a ação do usuário no Empty State
+  hasActiveFilters: boolean;
+  onClearFilters?: () => void;
 }
 
 export function TransactionList({
@@ -99,9 +99,14 @@ export function TransactionList({
               exit={{ opacity: 0, x: -10 }}
               className="flex items-center justify-between p-3.5 sm:p-4 bg-card border border-border/80 rounded-xl hover:border-purple-500/30 transition-colors group"
             >
-              <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 mr-2">
+              {/* Lado Esquerdo: Ícone + Textos */}
+              <div className="flex items-center gap-3 sm:gap-4 min-w-0 flex-1 mr-3">
                 <div
-                  className={`p-2 rounded-full shrink-0 ${isIncome ? "bg-emerald-500/10 text-emerald-500" : "bg-rose-500/10 text-rose-500"}`}
+                  className={`p-2 rounded-full shrink-0 ${
+                    isIncome
+                      ? "bg-emerald-500/10 text-emerald-500"
+                      : "bg-rose-500/10 text-rose-500"
+                  }`}
                 >
                   {isIncome ? (
                     <ArrowUpIcon className="w-4 h-4 sm:w-5 sm:h-5" />
@@ -109,20 +114,27 @@ export function TransactionList({
                     <ArrowDownIcon className="w-4 h-4 sm:w-5 sm:h-5" />
                   )}
                 </div>
-                <div className="min-w-0">
-                  <p className="font-medium text-foreground text-sm sm:text-base line-clamp-1">
+
+                <div className="min-w-0 flex-1">
+                  <p className="font-medium text-foreground text-sm sm:text-base line-clamp-1 break-all">
                     {tx.description}
                   </p>
-                  <div className="flex items-center gap-2 mt-0.5">
-                    <span className="text-[10px] sm:text-xs text-muted-foreground">
+
+                  {/* Container de Metadados corrigido com wrap e gap adaptativo */}
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 sm:mt-0.5 min-w-0">
+                    <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0">
                       {localNormalizedDate.toLocaleDateString("pt-BR")}
                     </span>
                     {tx.category && (
                       <>
-                        <span className="text-muted-foreground text-[10px]">
+                        {/* Separador oculto em telas muito pequenas se houver quebra de linha */}
+                        <span className="text-muted-foreground text-[10px] hidden xs:inline">
                           •
                         </span>
-                        <span className="bg-white/5 border border-white/5 px-2 py-0.5 rounded text-[10px] font-medium text-purple-400">
+                        <span
+                          title={tx.category.name}
+                          className="bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] font-medium text-purple-400 truncate max-w-[100px] xs:max-w-[140px] sm:max-w-[200px]"
+                        >
                           {tx.category.name}
                         </span>
                       </>
@@ -131,16 +143,19 @@ export function TransactionList({
                 </div>
               </div>
 
-              <div className="flex items-center gap-2 sm:gap-4 shrink-0">
+              {/* Lado Direito: Valor + Botão Excluir */}
+              <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-1">
                 <span
-                  className={`font-semibold text-sm sm:text-base ${isIncome ? "text-emerald-500" : "text-foreground"}`}
+                  className={`font-semibold text-sm sm:text-base whitespace-nowrap ${
+                    isIncome ? "text-emerald-500" : "text-foreground"
+                  }`}
                 >
                   {isIncome ? "+" : "-"} R$ {formatCurrency(tx.amount)}
                 </span>
                 <button
                   onClick={() => deleteTx(tx.id)}
                   disabled={isDeleting}
-                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all active:scale-95"
+                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all active:scale-95 shrink-0"
                   aria-label="Excluir transação"
                 >
                   <Trash2 className="w-4 h-4" />
