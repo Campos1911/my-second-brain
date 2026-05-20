@@ -12,11 +12,14 @@ interface FinanceSummaryProps {
 export function FinanceSummary({ transactions }: FinanceSummaryProps) {
   const totals = transactions.reduce(
     (acc, tx) => {
+      // Força a conversão do valor para número de forma segura
+      const amount = Number(tx.amount) || 0;
       const isIncome = tx.category?.type === "INCOME";
+
       if (isIncome) {
-        acc.income += tx.amount;
+        acc.income += amount;
       } else {
-        acc.expense += tx.amount;
+        acc.expense += amount;
       }
       return acc;
     },
