@@ -6,7 +6,6 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
-import { UpdateTransactionDto } from './dto/update-transaction.dto';
 import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
@@ -25,9 +24,50 @@ export class TransactionsService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Constrói a cláusula WHERE de forma dinâmica compartilhada entre a listagem e o resumo.
+   */
+  private buildWhereClause(
+    userId: string,
+    month?: number,
+    year?: number,
+    categoryIds?: string | string[],
+  ): Prisma.TransactionWhereInput {
+    const whereClause: Prisma.TransactionWhereInput = {
+      userId,
+      deletedAt: null,
+    };
+
+    if (year && month) {
+      const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
+      const endDate = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
+
+      whereClause.date = {
+        gte: startDate,
+        lt: endDate,
+      };
+    }
+
+    if (categoryIds) {
+      const parsedCategoryIds = Array.isArray(categoryIds)
+        ? categoryIds
+        : categoryIds
+            .split(',')
+            .map((id) => id.trim())
+            .filter(Boolean);
+
+      if (parsedCategoryIds.length > 0) {
+        whereClause.categoryId = {
+          in: parsedCategoryIds,
+        };
+      }
+    }
+
+    return whereClause;
+  }
+
   async create(userId: string, dto: CreateTransactionDto) {
     try {
-      // Validar se a categoria pertence ao usuário ou é global
       const category = await this.prisma.category.findFirst({
         where: {
           id: dto.categoryId,
@@ -64,42 +104,8 @@ export class TransactionsService {
     categoryIds?: string | string[],
   ) {
     const skip = (page - 1) * limit;
+    const whereClause = this.buildWhereClause(userId, month, year, categoryIds);
 
-    // Monta dinamicamente a cláusula where do Prisma
-    const whereClause: Prisma.TransactionWhereInput = {
-      userId,
-      deletedAt: null,
-    };
-
-    // Se mês e ano forem providos, filtra pelo intervalo de data
-    if (year && month) {
-      // Date.UTC() cria o timestamp sem sofrer distorção de fuso horário do servidor
-      const startDate = new Date(Date.UTC(year, month - 1, 1, 0, 0, 0, 0));
-      const endDate = new Date(Date.UTC(year, month, 1, 0, 0, 0, 0));
-
-      whereClause.date = {
-        gte: startDate,
-        lt: endDate,
-      };
-    }
-
-    // Filtro por Categorias (Suporta ID único, array de IDs ou string separada por vírgula)
-    if (categoryIds) {
-      const parsedCategoryIds = Array.isArray(categoryIds)
-        ? categoryIds
-        : categoryIds
-            .split(',')
-            .map((id) => id.trim())
-            .filter(Boolean);
-
-      if (parsedCategoryIds.length > 0) {
-        whereClause.categoryId = {
-          in: parsedCategoryIds,
-        };
-      }
-    }
-
-    // Promise.all para performance: busca total e dados em paralelo
     const [total, data] = await Promise.all([
       this.prisma.transaction.count({ where: whereClause }),
       this.prisma.transaction.findMany({
@@ -121,6 +127,55 @@ export class TransactionsService {
     };
   }
 
+  /**
+   * Retorna o resumo financeiro (Entradas, Saídas e Saldo) aplicando os filtros
+   * selecionados sem limitação de paginação.
+   */
+  async getSummary(
+    userId: string,
+    month?: number,
+    year?: number,
+    categoryIds?: string | string[],
+  ) {
+    const whereClause = this.buildWhereClause(userId, month, year, categoryIds);
+
+    // Seleciona apenas os campos estritamente necessários para otimizar o consumo de memória
+    const transactions = await this.prisma.transaction.findMany({
+      where: whereClause,
+      select: {
+        amount: true,
+        category: {
+          select: {
+            type: true,
+          },
+        },
+      },
+    });
+
+    let income = new Prisma.Decimal(0);
+    let expense = new Prisma.Decimal(0);
+
+    for (const tx of transactions) {
+      const amount = tx.amount;
+      const isIncome = tx.category?.type === 'INCOME';
+
+      if (isIncome) {
+        income = income.plus(amount);
+      } else {
+        // Alinhado com a lógica do frontend onde categorias não 'INCOME' entram como despesas/saídas
+        expense = expense.plus(amount);
+      }
+    }
+
+    const balance = income.minus(expense);
+
+    return {
+      income: income.toNumber(),
+      expense: expense.toNumber(),
+      balance: balance.toNumber(),
+    };
+  }
+
   async findOne(id: string, userId: string) {
     const transaction = await this.prisma.transaction.findFirst({
       where: { id, userId, deletedAt: null },
@@ -133,7 +188,6 @@ export class TransactionsService {
 
   async remove(id: string, userId: string) {
     try {
-      // Garantimos que o usuário só deleta o que é dele
       await this.prisma.transaction.update({
         where: { id, userId, deletedAt: null },
         data: { deletedAt: new Date() },

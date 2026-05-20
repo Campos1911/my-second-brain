@@ -38,6 +38,12 @@ export interface Transaction {
   category?: Category; // Relação incluída opcionalmente
 }
 
+export interface TransactionSummary {
+  income: number;
+  expense: number;
+  balance: number;
+}
+
 // Schemas Zod para Criação
 export const createCategorySchema = z.object({
   name: z.string().min(2, "O nome deve ter no mínimo 2 caracteres."),

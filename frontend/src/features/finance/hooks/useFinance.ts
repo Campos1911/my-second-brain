@@ -1,13 +1,23 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { financeService } from "../services/financeService";
-import { CreateCategoryDTO, CreateTransactionDTO } from "../types";
+import {
+  CreateCategoryDTO,
+  CreateTransactionDTO,
+  TransactionSummary,
+} from "../types";
 
 interface UseTransactionsFilters {
   page: number;
   limit: number;
   month: number;
   year: number;
-  categoryIds?: string[]; // Adicionado: suporte opcional para filtro de categorias
+  categoryIds?: string[];
+}
+
+interface UseTransactionSummaryFilters {
+  month: number;
+  year: number;
+  categoryIds?: string[];
 }
 
 // --- Queries (Leitura) ---
@@ -16,9 +26,7 @@ export function useCategories() {
     queryKey: ["categories"],
     queryFn: async () => {
       const response = await financeService.getCategories();
-
       const categories = response.data;
-
       return Array.isArray(categories) ? categories : [];
     },
   });
@@ -26,14 +34,29 @@ export function useCategories() {
 
 export function useTransactions(filters: UseTransactionsFilters) {
   return useQuery({
-    queryKey: ["transactions", filters], // O Tanstack Query rastreia automaticamente mudanças no objeto filters completo
+    queryKey: ["transactions", "list", filters], // Ajustado com "list" para precisão, caso necessário
     queryFn: async () => {
       const response = await financeService.getTransactions({
         page: filters.page,
         limit: filters.limit,
         month: filters.month,
         year: filters.year,
-        categoryIds: filters.categoryIds, // Adicionado: repassado para o serviço da API
+        categoryIds: filters.categoryIds,
+      });
+      return response;
+    },
+  });
+}
+
+// Novo: Hook para o resumo consolidado
+export function useTransactionSummary(filters: UseTransactionSummaryFilters) {
+  return useQuery<TransactionSummary>({
+    queryKey: ["transactions", "summary", filters],
+    queryFn: async () => {
+      const response = await financeService.getTransactionSummary({
+        month: filters.month,
+        year: filters.year,
+        categoryIds: filters.categoryIds,
       });
       return response;
     },
@@ -48,7 +71,6 @@ export function useCreateCategory() {
     mutationFn: (data: CreateCategoryDTO) =>
       financeService.createCategory(data),
     onSuccess: () => {
-      // Invalida o cache para refetch automático
       queryClient.invalidateQueries({ queryKey: ["categories"] });
     },
   });
@@ -61,6 +83,7 @@ export function useCreateTransaction() {
     mutationFn: (data: CreateTransactionDTO) =>
       financeService.createTransaction(data),
     onSuccess: () => {
+      // Invalida todos os caches que iniciam com ["transactions"] (lista e resumo)
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
@@ -72,6 +95,7 @@ export function useDeleteTransaction() {
   return useMutation({
     mutationFn: (id: string) => financeService.deleteTransaction(id),
     onSuccess: () => {
+      // Invalida todos os caches que iniciam com ["transactions"] (lista e resumo)
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });

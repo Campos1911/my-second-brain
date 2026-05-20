@@ -3,35 +3,27 @@
 import { motion } from "framer-motion";
 import { ArrowUpRight, ArrowDownRight, DollarSign } from "lucide-react";
 import { formatCurrency } from "@/lib/utils";
-import { Transaction } from "../types";
+import { TransactionSummary } from "../types";
 
 interface FinanceSummaryProps {
-  transactions: Transaction[];
+  summary?: TransactionSummary;
+  isLoading?: boolean;
 }
 
-export function FinanceSummary({ transactions }: FinanceSummaryProps) {
-  const totals = transactions.reduce(
-    (acc, tx) => {
-      // Força a conversão do valor para número de forma segura
-      const amount = Number(tx.amount) || 0;
-      const isIncome = tx.category?.type === "INCOME";
-
-      if (isIncome) {
-        acc.income += amount;
-      } else {
-        acc.expense += amount;
-      }
-      return acc;
-    },
-    { income: 0, expense: 0 },
-  );
-
-  const balance = totals.income - totals.expense;
+export function FinanceSummary({
+  summary,
+  isLoading = false,
+}: FinanceSummaryProps) {
+  const balance = summary?.balance ?? 0;
+  const income = summary?.income ?? 0;
+  const expense = summary?.expense ?? 0;
 
   const cardVariants = {
     hidden: { opacity: 0, y: 15 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.3 } },
   };
+
+  const skeletonClass = "animate-pulse bg-muted/60 rounded-md h-8 w-28";
 
   return (
     <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -46,16 +38,22 @@ export function FinanceSummary({ transactions }: FinanceSummaryProps) {
           <span className="text-xs sm:text-sm font-medium">
             Saldo Disponível
           </span>
-          <div className="p-2 bg-primary-500/10 text-primary-500 rounded-lg">
+          <div className="p-2 bg-purple-500/10 text-purple-500 rounded-lg">
             <DollarSign className="w-4 h-4" />
           </div>
         </div>
         <div>
-          <h3
-            className={`text-xl sm:text-2xl font-bold tracking-tight ${balance >= 0 ? "text-foreground" : "text-rose-500"}`}
-          >
-            R$ {formatCurrency(balance)}
-          </h3>
+          {isLoading ? (
+            <div className={skeletonClass} />
+          ) : (
+            <h3
+              className={`text-xl sm:text-2xl font-bold tracking-tight ${
+                balance >= 0 ? "text-foreground" : "text-rose-500"
+              }`}
+            >
+              R$ {formatCurrency(balance)}
+            </h3>
+          )}
         </div>
         <div className="absolute top-0 right-0 w-24 h-24 bg-primary-500/5 rounded-full blur-2xl pointer-events-none" />
       </motion.div>
@@ -74,9 +72,13 @@ export function FinanceSummary({ transactions }: FinanceSummaryProps) {
           </div>
         </div>
         <div>
-          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-emerald-500">
-            + R$ {formatCurrency(totals.income)}
-          </h3>
+          {isLoading ? (
+            <div className={skeletonClass} />
+          ) : (
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-emerald-500">
+              + R$ {formatCurrency(income)}
+            </h3>
+          )}
         </div>
       </motion.div>
 
@@ -94,9 +96,13 @@ export function FinanceSummary({ transactions }: FinanceSummaryProps) {
           </div>
         </div>
         <div>
-          <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-rose-500">
-            - R$ {formatCurrency(totals.expense)}
-          </h3>
+          {isLoading ? (
+            <div className={skeletonClass} />
+          ) : (
+            <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-rose-500">
+              - R$ {formatCurrency(expense)}
+            </h3>
+          )}
         </div>
       </motion.div>
     </div>

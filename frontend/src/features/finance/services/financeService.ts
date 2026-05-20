@@ -6,6 +6,7 @@ import {
   CreateTransactionDTO,
   ApiResponse,
   PaginatedResponse,
+  TransactionSummary, // Certifique-se de exportar esta interface no seu types.ts
 } from "../types";
 
 export const financeService = {
@@ -41,6 +42,30 @@ export const financeService = {
 
     const response = await api.get<PaginatedResponse<Transaction>>(
       "/transactions",
+      {
+        params: queryParams,
+      },
+    );
+    return response.data;
+  },
+
+  async getTransactionSummary(params?: {
+    month?: number;
+    year?: number;
+    categoryIds?: string[];
+  }): Promise<TransactionSummary> {
+    const queryParams = params
+      ? {
+          ...params,
+          categoryIds:
+            params.categoryIds && params.categoryIds.length > 0
+              ? params.categoryIds.join(",")
+              : undefined,
+        }
+      : undefined;
+
+    const response = await api.get<TransactionSummary>(
+      "/transactions/summary",
       {
         params: queryParams,
       },

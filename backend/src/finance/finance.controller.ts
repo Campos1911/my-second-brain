@@ -46,6 +46,21 @@ export class TransactionsController {
     );
   }
 
+  @Get('summary')
+  async getSummary(
+    @GetCurrentUserId() userId: string,
+    @Query('month', new ParseIntPipe({ optional: true })) month?: number,
+    @Query('year', new ParseIntPipe({ optional: true })) year?: number,
+    @Query('categoryIds') categoryIds?: string | string[],
+  ) {
+    return this.transactionsService.getSummary(
+      userId,
+      month,
+      year,
+      categoryIds,
+    );
+  }
+
   @Get(':id')
   async findOne(@Param('id') id: string, @GetCurrentUserId() userId: string) {
     return this.transactionsService.findOne(id, userId);

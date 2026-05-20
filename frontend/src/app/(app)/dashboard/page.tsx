@@ -7,11 +7,13 @@ import { CreateTransactionModal } from "@/features/finance/components/CreateTran
 import { MonthSelector } from "@/features/finance/components/MonthSelector";
 import { FinanceSummary } from "@/features/finance/components/FinanceSummary";
 import { CategoryFilter } from "@/features/finance/components/CategoryFilter";
-import { useTransactions } from "@/features/finance/hooks/useFinance";
+import {
+  useTransactions,
+  useTransactionSummary,
+} from "@/features/finance/hooks/useFinance";
 import { Pagination } from "@/components/Pagination";
 import { Plus } from "lucide-react";
 
-// 1. Criamos um componente interno com a lógica da página
 function DashboardContent() {
   const router = useRouter();
   const pathname = usePathname();
@@ -73,8 +75,12 @@ function DashboardContent() {
     });
   };
 
-  // Hook consumindo os filtros dinâmicos e de categoria
-  const { data, isLoading, isError } = useTransactions({
+  // Requisição 1: Listagem de Transações Paginadas
+  const {
+    data: transactionsData,
+    isLoading: isLoadingTransactions,
+    isError: isTransactionsError,
+  } = useTransactions({
     page: currentPage,
     limit: LIMIT_PER_PAGE,
     month: currentMonth,
@@ -82,8 +88,16 @@ function DashboardContent() {
     categoryIds: selectedCategoryIds,
   });
 
-  const transactions = data?.data || [];
-  const meta = data?.meta || { total: 0, page: 1, lastPage: 1 };
+  // Requisição 2: Resumo Consolidado (Não Paginado, com os mesmos filtros)
+  const { data: summaryData, isLoading: isLoadingSummary } =
+    useTransactionSummary({
+      month: currentMonth,
+      year: currentYear,
+      categoryIds: selectedCategoryIds,
+    });
+
+  const transactions = transactionsData?.data || [];
+  const meta = transactionsData?.meta || { total: 0, page: 1, lastPage: 1 };
 
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0 py-4 sm:py-0">
@@ -113,7 +127,7 @@ function DashboardContent() {
       </div>
 
       {/* Cards de Resumo */}
-      <FinanceSummary transactions={transactions} />
+      <FinanceSummary summary={summaryData} isLoading={isLoadingSummary} />
 
       {/* Componente de Filtro de Categorias */}
       <section className="bg-card/40 border border-border/60 p-4 rounded-2xl">
@@ -130,8 +144,8 @@ function DashboardContent() {
         </h2>
         <TransactionList
           transactions={transactions}
-          isLoading={isLoading}
-          isError={isError}
+          isLoading={isLoadingTransactions}
+          isError={isTransactionsError}
           hasActiveFilters={selectedCategoryIds.length > 0}
           onClearFilters={() => handleCategoryChange([])}
         />
@@ -153,7 +167,6 @@ function DashboardContent() {
   );
 }
 
-// 2. Exportamos a página padrão envolvendo o conteúdo em um Suspense boundary
 export default function DashboardPage() {
   return (
     <Suspense
