@@ -150,7 +150,7 @@ export class TransactionsService {
     month?: number,
     year?: number,
     categoryIds?: string | string[],
-    paymentMethod?: 'DEBIT' | 'CREDIT', // Novo filtro de método de pagamento
+    paymentMethod?: 'DEBIT' | 'CREDIT',
   ) {
     const whereClause = this.buildWhereClause(
       userId,
@@ -160,32 +160,30 @@ export class TransactionsService {
       paymentMethod,
     );
 
-    const transactions = await this.prisma.transaction.findMany({
-      where: whereClause,
-      select: {
-        amount: true,
-        category: {
-          select: {
-            type: true,
-          },
+    // Executa duas agregações simples no banco de dados
+    const [incomeSum, expenseSum] = await Promise.all([
+      this.prisma.transaction.aggregate({
+        where: {
+          ...whereClause,
+          category: { type: 'INCOME' },
         },
-      },
-    });
+        _sum: { amount: true },
+      }),
+      this.prisma.transaction.aggregate({
+        where: {
+          ...whereClause,
+          category: { type: 'EXPENSE' },
+        },
+        _sum: { amount: true },
+      }),
+    ]);
 
-    let income = new Prisma.Decimal(0);
-    let expense = new Prisma.Decimal(0);
-
-    for (const tx of transactions) {
-      const amount = tx.amount;
-      const isIncome = tx.category?.type === 'INCOME';
-
-      if (isIncome) {
-        income = income.plus(amount);
-      } else {
-        expense = expense.plus(amount);
-      }
-    }
-
+    const income = incomeSum._sum.amount
+      ? new Prisma.Decimal(incomeSum._sum.amount)
+      : new Prisma.Decimal(0);
+    const expense = expenseSum._sum.amount
+      ? new Prisma.Decimal(expenseSum._sum.amount)
+      : new Prisma.Decimal(0);
     const balance = income.minus(expense);
 
     return {
