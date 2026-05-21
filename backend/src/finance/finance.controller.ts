@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
   ParseIntPipe,
+  BadRequestException,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TransactionsService } from './transactions.service';
@@ -35,7 +36,10 @@ export class TransactionsController {
     @Query('month', new ParseIntPipe({ optional: true })) month?: number,
     @Query('year', new ParseIntPipe({ optional: true })) year?: number,
     @Query('categoryIds') categoryIds?: string | string[],
+    @Query('paymentMethod') paymentMethod?: string, // Recebimento como query opcional
   ) {
+    this.validatePaymentMethodQuery(paymentMethod);
+
     return this.transactionsService.findAll(
       userId,
       page,
@@ -43,6 +47,7 @@ export class TransactionsController {
       month,
       year,
       categoryIds,
+      paymentMethod as 'DEBIT' | 'CREDIT' | undefined,
     );
   }
 
@@ -52,12 +57,16 @@ export class TransactionsController {
     @Query('month', new ParseIntPipe({ optional: true })) month?: number,
     @Query('year', new ParseIntPipe({ optional: true })) year?: number,
     @Query('categoryIds') categoryIds?: string | string[],
+    @Query('paymentMethod') paymentMethod?: string, // Filtro por método de pagamento no resumo
   ) {
+    this.validatePaymentMethodQuery(paymentMethod);
+
     return this.transactionsService.getSummary(
       userId,
       month,
       year,
       categoryIds,
+      paymentMethod as 'DEBIT' | 'CREDIT' | undefined,
     );
   }
 
@@ -69,5 +78,16 @@ export class TransactionsController {
   @Delete(':id')
   async remove(@Param('id') id: string, @GetCurrentUserId() userId: string) {
     return this.transactionsService.remove(id, userId);
+  }
+
+  /**
+   * Helper para validar a query de método de pagamento opcional sem inflar o controller.
+   */
+  private validatePaymentMethodQuery(method?: string) {
+    if (method && method !== 'DEBIT' && method !== 'CREDIT') {
+      throw new BadRequestException(
+        'Método de pagamento inválido. Valores aceitos: DEBIT ou CREDIT.',
+      );
+    }
   }
 }

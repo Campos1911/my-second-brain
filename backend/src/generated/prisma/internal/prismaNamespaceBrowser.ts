@@ -107,6 +107,7 @@ export const TransactionScalarFieldEnum = {
   date: 'date',
   categoryId: 'categoryId',
   userId: 'userId',
+  paymentMethod: 'paymentMethod',
   deletedAt: 'deletedAt'
 } as const
 

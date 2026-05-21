@@ -16,3 +16,11 @@ export const CategoryType = {
 } as const
 
 export type CategoryType = (typeof CategoryType)[keyof typeof CategoryType]
+
+
+export const PaymentMethod = {
+  DEBIT: 'DEBIT',
+  CREDIT: 'CREDIT'
+} as const
+
+export type PaymentMethod = (typeof PaymentMethod)[keyof typeof PaymentMethod]

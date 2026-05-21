@@ -45,18 +45,25 @@ enum CategoryType {
   FITNESS
 }
 
-model Transaction {
-  id          String    @id @default(uuid())
-  amount      Decimal   @db.Decimal(12, 2)
-  description String?
-  date        DateTime  @default(now())
-  categoryId  String
-  category    Category  @relation(fields: [categoryId], references: [id])
-  userId      String
-  user        User      @relation(fields: [userId], references: [id])
-  deletedAt   DateTime? // Soft Delete
+enum PaymentMethod {
+  DEBIT
+  CREDIT
+}
 
-  @@index([userId, date, deletedAt])
+model Transaction {
+  id            String        @id @default(uuid())
+  amount        Decimal       @db.Decimal(12, 2)
+  description   String?
+  date          DateTime      @default(now())
+  categoryId    String
+  category      Category      @relation(fields: [categoryId], references: [id])
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  paymentMethod PaymentMethod @default(DEBIT)
+  deletedAt     DateTime? // Soft Delete
+
+  // Índice otimizado incluindo a busca e ordenação comum com o método de pagamento
+  @@index([userId, date, paymentMethod, deletedAt])
 }
 
 model Asset {

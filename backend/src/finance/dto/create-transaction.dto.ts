@@ -4,6 +4,7 @@ import {
   IsOptional,
   IsUUID,
   IsDateString,
+  IsIn,
 } from 'class-validator';
 
 export class CreateTransactionDto {
@@ -20,4 +21,10 @@ export class CreateTransactionDto {
 
   @IsUUID()
   categoryId!: string;
+
+  @IsIn(['DEBIT', 'CREDIT'], {
+    message: 'O método de pagamento deve ser DEBIT ou CREDIT.',
+  })
+  @IsOptional()
+  paymentMethod?: 'DEBIT' | 'CREDIT' = 'DEBIT';
 }

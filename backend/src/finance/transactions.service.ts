@@ -17,6 +17,7 @@ export class TransactionsService {
     amount: true,
     description: true,
     date: true,
+    paymentMethod: true, // Adicionado na seleção do objeto retornado
     category: {
       select: { id: true, name: true, type: true },
     },
@@ -32,6 +33,7 @@ export class TransactionsService {
     month?: number,
     year?: number,
     categoryIds?: string | string[],
+    paymentMethod?: 'DEBIT' | 'CREDIT', // Novo filtro adicionado à assinatura do método helper
   ): Prisma.TransactionWhereInput {
     const whereClause: Prisma.TransactionWhereInput = {
       userId,
@@ -63,6 +65,10 @@ export class TransactionsService {
       }
     }
 
+    if (paymentMethod) {
+      whereClause.paymentMethod = paymentMethod;
+    }
+
     return whereClause;
   }
 
@@ -80,11 +86,12 @@ export class TransactionsService {
 
       return await this.prisma.transaction.create({
         data: {
-          amount: dto.amount,
+          amount: new Prisma.Decimal(dto.amount),
           description: dto.description,
           date: dto.date ? new Date(dto.date) : new Date(),
           userId,
           categoryId: dto.categoryId,
+          paymentMethod: dto.paymentMethod, // Persiste o método de pagamento no banco
         },
         select: this.transactionSelect,
       });
@@ -102,9 +109,16 @@ export class TransactionsService {
     month?: number,
     year?: number,
     categoryIds?: string | string[],
+    paymentMethod?: 'DEBIT' | 'CREDIT', // Novo filtro de método de pagamento
   ) {
     const skip = (page - 1) * limit;
-    const whereClause = this.buildWhereClause(userId, month, year, categoryIds);
+    const whereClause = this.buildWhereClause(
+      userId,
+      month,
+      year,
+      categoryIds,
+      paymentMethod,
+    );
 
     const [total, data] = await Promise.all([
       this.prisma.transaction.count({ where: whereClause }),
@@ -129,17 +143,23 @@ export class TransactionsService {
 
   /**
    * Retorna o resumo financeiro (Entradas, Saídas e Saldo) aplicando os filtros
-   * selecionados sem limitação de paginação.
+   * selecionados (incluindo o método de pagamento se fornecido).
    */
   async getSummary(
     userId: string,
     month?: number,
     year?: number,
     categoryIds?: string | string[],
+    paymentMethod?: 'DEBIT' | 'CREDIT', // Novo filtro de método de pagamento
   ) {
-    const whereClause = this.buildWhereClause(userId, month, year, categoryIds);
+    const whereClause = this.buildWhereClause(
+      userId,
+      month,
+      year,
+      categoryIds,
+      paymentMethod,
+    );
 
-    // Seleciona apenas os campos estritamente necessários para otimizar o consumo de memória
     const transactions = await this.prisma.transaction.findMany({
       where: whereClause,
       select: {
@@ -162,7 +182,6 @@ export class TransactionsService {
       if (isIncome) {
         income = income.plus(amount);
       } else {
-        // Alinhado com a lógica do frontend onde categorias não 'INCOME' entram como despesas/saídas
         expense = expense.plus(amount);
       }
     }
