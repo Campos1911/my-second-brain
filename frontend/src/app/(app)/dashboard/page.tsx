@@ -12,7 +12,8 @@ import {
   useTransactionSummary,
 } from "@/features/finance/hooks/useFinance";
 import { Pagination } from "@/components/Pagination";
-import { Plus } from "lucide-react";
+import { Plus, Wallet, CreditCard, Layers } from "lucide-react";
+import { PaymentMethod } from "@/features/finance/types";
 
 function DashboardContent() {
   const router = useRouter();
@@ -31,10 +32,15 @@ function DashboardContent() {
     ? categoryParam.split(",").filter(Boolean)
     : [];
 
+  // Ler o método de pagamento vindo da URL (?paymentMethod=DEBIT)
+  const paymentMethodParam = searchParams.get(
+    "paymentMethod",
+  ) as PaymentMethod | null;
+
   const currentMonth = selectedDate.getMonth() + 1;
   const currentYear = selectedDate.getFullYear();
 
-  // Atualiza a URL mantendo um histórico limpo
+  // Sincronização e reset suave de filtros de categoria
   const handleCategoryChange = (newIds: string[]) => {
     const params = new URLSearchParams(searchParams.toString());
 
@@ -47,7 +53,36 @@ function DashboardContent() {
     params.set("page", "1"); // Reseta para a página 1 ao mudar de filtro
     setCurrentPage(1);
 
-    // Navega suavemente sem reload completo
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`);
+    });
+  };
+
+  // Sincronização do filtro de método de pagamento
+  const handlePaymentMethodChange = (method: "ALL" | PaymentMethod) => {
+    const params = new URLSearchParams(searchParams.toString());
+
+    if (method !== "ALL") {
+      params.set("paymentMethod", method);
+    } else {
+      params.delete("paymentMethod");
+    }
+
+    params.set("page", "1"); // Reseta para a página 1 ao mudar de filtro
+    setCurrentPage(1);
+
+    startTransition(() => {
+      router.push(`${pathname}?${params.toString()}`);
+    });
+  };
+
+  const handleClearAllFilters = () => {
+    const params = new URLSearchParams(searchParams.toString());
+    params.delete("categories");
+    params.delete("paymentMethod");
+    params.set("page", "1");
+    setCurrentPage(1);
+
     startTransition(() => {
       router.push(`${pathname}?${params.toString()}`);
     });
@@ -86,6 +121,7 @@ function DashboardContent() {
     month: currentMonth,
     year: currentYear,
     categoryIds: selectedCategoryIds,
+    paymentMethod: paymentMethodParam || undefined,
   });
 
   // Requisição 2: Resumo Consolidado (Não Paginado, com os mesmos filtros)
@@ -94,10 +130,13 @@ function DashboardContent() {
       month: currentMonth,
       year: currentYear,
       categoryIds: selectedCategoryIds,
+      paymentMethod: paymentMethodParam || undefined,
     });
 
   const transactions = transactionsData?.data || [];
   const meta = transactionsData?.meta || { total: 0, page: 1, lastPage: 1 };
+  const hasActiveFilters =
+    selectedCategoryIds.length > 0 || !!paymentMethodParam;
 
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0 py-4 sm:py-0">
@@ -139,15 +178,56 @@ function DashboardContent() {
 
       {/* Lista de Transações */}
       <section>
-        <h2 className="text-lg sm:text-xl font-semibold mb-3 sm:mb-4 text-foreground/80">
-          Transações do Mês
-        </h2>
+        {/* Cabeçalho de Transações com Filtro por Forma de Pagamento */}
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-4">
+          <h2 className="text-lg sm:text-xl font-semibold text-foreground/80">
+            Transações do Mês
+          </h2>
+
+          {/* Filtro Rápido - Payment Method Tabs */}
+          <div className="flex items-center gap-1 bg-card border border-border/80 p-1 rounded-xl w-full sm:w-auto self-start sm:self-center">
+            <button
+              onClick={() => handlePaymentMethodChange("ALL")}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                !paymentMethodParam
+                  ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Layers className="w-3.5 h-3.5" />
+              Todos
+            </button>
+            <button
+              onClick={() => handlePaymentMethodChange("DEBIT")}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                paymentMethodParam === "DEBIT"
+                  ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <Wallet className="w-3.5 h-3.5" />
+              Débito
+            </button>
+            <button
+              onClick={() => handlePaymentMethodChange("CREDIT")}
+              className={`flex-1 sm:flex-none flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
+                paymentMethodParam === "CREDIT"
+                  ? "bg-purple-600 text-white shadow-md shadow-purple-500/10"
+                  : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <CreditCard className="w-3.5 h-3.5" />
+              Crédito
+            </button>
+          </div>
+        </div>
+
         <TransactionList
           transactions={transactions}
           isLoading={isLoadingTransactions}
           isError={isTransactionsError}
-          hasActiveFilters={selectedCategoryIds.length > 0}
-          onClearFilters={() => handleCategoryChange([])}
+          hasActiveFilters={hasActiveFilters}
+          onClearFilters={handleClearAllFilters}
         />
 
         {/* Adicionando Componente de Paginação */}

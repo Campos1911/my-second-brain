@@ -2,11 +2,12 @@ import { api } from "@/services/api";
 import {
   Category,
   Transaction,
-  CreateCategoryDTO,
-  CreateTransactionDTO,
   ApiResponse,
   PaginatedResponse,
-  TransactionSummary, // Certifique-se de exportar esta interface no seu types.ts
+  TransactionSummary,
+  PaymentMethod,
+  CreateTransactionDTO,
+  CreateCategoryDTO,
 } from "../types";
 
 export const financeService = {
@@ -28,6 +29,7 @@ export const financeService = {
     month?: number;
     year?: number;
     categoryIds?: string[];
+    paymentMethod?: PaymentMethod;
   }): Promise<PaginatedResponse<Transaction>> {
     // Normaliza os parâmetros para o formato esperado pelo backend
     const queryParams = params
@@ -37,6 +39,7 @@ export const financeService = {
             params.categoryIds && params.categoryIds.length > 0
               ? params.categoryIds.join(",")
               : undefined,
+          paymentMethod: params.paymentMethod || undefined,
         }
       : undefined;
 
@@ -53,6 +56,7 @@ export const financeService = {
     month?: number;
     year?: number;
     categoryIds?: string[];
+    paymentMethod?: PaymentMethod;
   }): Promise<TransactionSummary> {
     const queryParams = params
       ? {
@@ -61,6 +65,7 @@ export const financeService = {
             params.categoryIds && params.categoryIds.length > 0
               ? params.categoryIds.join(",")
               : undefined,
+          paymentMethod: params.paymentMethod || undefined,
         }
       : undefined;
 

@@ -1,9 +1,10 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { financeService } from "../services/financeService";
 import {
-  CreateCategoryDTO,
   CreateTransactionDTO,
   TransactionSummary,
+  PaymentMethod,
+  CreateCategoryDTO,
 } from "../types";
 
 interface UseTransactionsFilters {
@@ -12,12 +13,14 @@ interface UseTransactionsFilters {
   month: number;
   year: number;
   categoryIds?: string[];
+  paymentMethod?: PaymentMethod;
 }
 
 interface UseTransactionSummaryFilters {
   month: number;
   year: number;
   categoryIds?: string[];
+  paymentMethod?: PaymentMethod;
 }
 
 // --- Queries (Leitura) ---
@@ -34,7 +37,7 @@ export function useCategories() {
 
 export function useTransactions(filters: UseTransactionsFilters) {
   return useQuery({
-    queryKey: ["transactions", "list", filters], // Ajustado com "list" para precisão, caso necessário
+    queryKey: ["transactions", "list", filters],
     queryFn: async () => {
       const response = await financeService.getTransactions({
         page: filters.page,
@@ -42,13 +45,14 @@ export function useTransactions(filters: UseTransactionsFilters) {
         month: filters.month,
         year: filters.year,
         categoryIds: filters.categoryIds,
+        paymentMethod: filters.paymentMethod,
       });
       return response;
     },
   });
 }
 
-// Novo: Hook para o resumo consolidado
+// Hook para o resumo consolidado
 export function useTransactionSummary(filters: UseTransactionSummaryFilters) {
   return useQuery<TransactionSummary>({
     queryKey: ["transactions", "summary", filters],
@@ -57,6 +61,7 @@ export function useTransactionSummary(filters: UseTransactionSummaryFilters) {
         month: filters.month,
         year: filters.year,
         categoryIds: filters.categoryIds,
+        paymentMethod: filters.paymentMethod,
       });
       return response;
     },
@@ -83,7 +88,6 @@ export function useCreateTransaction() {
     mutationFn: (data: CreateTransactionDTO) =>
       financeService.createTransaction(data),
     onSuccess: () => {
-      // Invalida todos os caches que iniciam com ["transactions"] (lista e resumo)
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
@@ -95,7 +99,6 @@ export function useDeleteTransaction() {
   return useMutation({
     mutationFn: (id: string) => financeService.deleteTransaction(id),
     onSuccess: () => {
-      // Invalida todos os caches que iniciam com ["transactions"] (lista e resumo)
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });

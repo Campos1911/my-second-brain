@@ -7,6 +7,7 @@ import {
   ArrowUpIcon,
   Trash2,
   Wallet,
+  CreditCard,
   FilterX,
 } from "lucide-react";
 import { formatCurrency, parseUTCToLocalDate } from "@/lib/utils";
@@ -60,15 +61,14 @@ export function TransactionList({
               Nenhuma transação encontrada.
             </p>
             <p className="text-xs text-muted-foreground text-center mb-4">
-              Não existem registros para as categorias selecionadas neste
-              período.
+              Não existem registros para os filtros selecionados neste período.
             </p>
             {onClearFilters && (
               <button
                 onClick={onClearFilters}
                 className="text-xs bg-purple-600/10 hover:bg-purple-600/20 text-purple-400 font-medium px-4 py-2 rounded-lg transition-colors border border-purple-500/20"
               >
-                Limpar Filtros aplicados
+                Limpar filtros aplicados
               </button>
             )}
           </>
@@ -120,22 +120,48 @@ export function TransactionList({
                     {tx.description}
                   </p>
 
-                  {/* Container de Metadados corrigido com wrap e gap adaptativo */}
+                  {/* Metadados */}
                   <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1 sm:mt-0.5 min-w-0">
                     <span className="text-[10px] sm:text-xs text-muted-foreground shrink-0">
                       {localNormalizedDate.toLocaleDateString("pt-BR")}
                     </span>
                     {tx.category && (
                       <>
-                        {/* Separador oculto em telas muito pequenas se houver quebra de linha */}
-                        <span className="text-muted-foreground text-[10px] hidden xs:inline">
+                        <span className="text-[10px] hidden xs:inline text-border/80">
                           •
                         </span>
                         <span
                           title={tx.category.name}
-                          className="bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] font-medium text-purple-400 truncate max-w-[100px] xs:max-w-[140px] sm:max-w-[200px]"
+                          className="bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded text-[10px] font-medium text-purple-400 truncate max-w-25 xs:max-w-[140px] sm:max-w-50"
                         >
                           {tx.category.name}
+                        </span>
+                      </>
+                    )}
+
+                    {tx.paymentMethod && (
+                      <>
+                        <span className="text-muted-foreground text-[10px] hidden xs:inline">
+                          •
+                        </span>
+                        <span
+                          className={`flex items-center gap-1 border px-2 py-0.5 rounded text-[10px] font-medium shrink-0 ${
+                            tx.paymentMethod === "CREDIT"
+                              ? "bg-zinc-500/15 border-zinc-500/30 text-zinc-300"
+                              : "bg-zinc-500/5 border-zinc-500/10 text-zinc-400"
+                          }`}
+                        >
+                          {tx.paymentMethod === "CREDIT" ? (
+                            <>
+                              <CreditCard className="w-2.5 h-2.5" />
+                              Crédito
+                            </>
+                          ) : (
+                            <>
+                              <Wallet className="w-2.5 h-2.5" />
+                              Débito
+                            </>
+                          )}
                         </span>
                       </>
                     )}
