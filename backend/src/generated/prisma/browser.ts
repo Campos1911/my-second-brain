@@ -28,6 +28,11 @@ export type User = Prisma.UserModel
  */
 export type Category = Prisma.CategoryModel
 /**
+ * Model RecurringTransaction
+ * 
+ */
+export type RecurringTransaction = Prisma.RecurringTransactionModel
+/**
  * Model Transaction
  * 
  */

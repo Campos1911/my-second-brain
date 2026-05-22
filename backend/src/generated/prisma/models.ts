@@ -10,6 +10,7 @@
  */
 export type * from './models/User.js'
 export type * from './models/Category.js'
+export type * from './models/RecurringTransaction.js'
 export type * from './models/Transaction.js'
 export type * from './models/Asset.js'
 export type * from './models/WorkoutPlan.js'
