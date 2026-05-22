@@ -1,0 +1,40 @@
+{
+  "output": {
+    "filePath": "repomix-output-frontend.xml",
+    "style": "xml",
+    "parsable": true,
+    "headerText": "Repositório Next.js empacotado para análise."
+  },
+  "include": ["**/*"],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "node_modules/**",
+      ".next/**",
+      "out/**",
+      "build/**",
+      "public/**",
+      "**/*.log",
+      "package-lock.json",
+      "yarn.lock",
+      "pnpm-lock.yaml",
+      "bun.lockb",
+      ".env*",
+      "**/*.png",
+      "**/*.jpg",
+      "**/*.jpeg",
+      "**/*.svg",
+      "**/*.gif",
+      "**/*.ico",
+      "**/*.webp",
+      "**/*.woff",
+      "**/*.woff2",
+      "**/*.ttf",
+      "**/*.eot"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}

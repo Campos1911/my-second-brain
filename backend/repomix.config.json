@@ -1,0 +1,27 @@
+{
+  "output": {
+    "filePath": "repomix-output-backend.xml",
+    "style": "xml",
+    "parsable": true
+  },
+  "include": ["**/*"],
+  "ignore": {
+    "useGitignore": true,
+    "useDefaultPatterns": true,
+    "customPatterns": [
+      "**/node_modules/**",
+      "**/dist/**",
+      "**/generated/**",
+      "**/prisma/migrations/**",
+      "**/repomix-output.xml",
+      "**/yarn.lock",
+      "**/package-lock.json",
+      "**/pnpm-lock.yaml",
+      "**/.env",
+      "**/*.log"
+    ]
+  },
+  "security": {
+    "enableSecurityCheck": true
+  }
+}
