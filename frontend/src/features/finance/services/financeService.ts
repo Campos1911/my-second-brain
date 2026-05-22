@@ -1,3 +1,5 @@
+// src/features/finance/services/financeService.ts
+
 import { api } from "@/services/api";
 import {
   Category,
@@ -8,6 +10,8 @@ import {
   PaymentMethod,
   CreateTransactionDTO,
   CreateCategoryDTO,
+  RecurringTransaction,
+  CreateRecurringTransactionDTO,
 } from "../types";
 
 export const financeService = {
@@ -26,7 +30,7 @@ export const financeService = {
     await api.delete(`/categories/${id}`);
   },
 
-  // Transações
+  // Transações Comuns
   async getTransactions(params?: {
     page?: number;
     limit?: number;
@@ -88,5 +92,42 @@ export const financeService = {
 
   async deleteTransaction(id: string): Promise<void> {
     await api.delete(`/transactions/${id}`);
+  },
+
+  // Transações Recorrentes (Novo Módulo)
+  async getRecurringTransactions(params?: {
+    page?: number;
+    limit?: number;
+  }): Promise<PaginatedResponse<RecurringTransaction>> {
+    const response = await api.get<PaginatedResponse<RecurringTransaction>>(
+      "/recurring-transactions",
+      { params },
+    );
+    return response.data;
+  },
+
+  async createRecurringTransaction(
+    data: CreateRecurringTransactionDTO,
+  ): Promise<RecurringTransaction> {
+    const response = await api.post<RecurringTransaction>(
+      "/recurring-transactions",
+      data,
+    );
+    return response.data;
+  },
+
+  async updateRecurringTransaction(
+    id: string,
+    data: Partial<CreateRecurringTransactionDTO> & { isActive?: boolean },
+  ): Promise<RecurringTransaction> {
+    const response = await api.patch<RecurringTransaction>(
+      `/recurring-transactions/${id}`,
+      data,
+    );
+    return response.data;
+  },
+
+  async deleteRecurringTransaction(id: string): Promise<void> {
+    await api.delete(`/recurring-transactions/${id}`);
   },
 };

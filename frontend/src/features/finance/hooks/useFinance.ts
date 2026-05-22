@@ -1,3 +1,5 @@
+// src/features/finance/hooks/useFinance.ts
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { financeService } from "../services/financeService";
 import {
@@ -5,6 +7,7 @@ import {
   TransactionSummary,
   PaymentMethod,
   CreateCategoryDTO,
+  CreateRecurringTransactionDTO,
 } from "../types";
 
 interface UseTransactionsFilters {
@@ -29,7 +32,6 @@ export function useCategories() {
     queryKey: ["categories"],
     queryFn: async () => {
       const response = await financeService.getCategories();
-      // O backend envelopa a resposta em { data: Category[] }
       const categories = response.data;
       return Array.isArray(categories) ? categories : [];
     },
@@ -64,6 +66,18 @@ export function useTransactionSummary(filters: UseTransactionSummaryFilters) {
         paymentMethod: filters.paymentMethod,
       });
       return response;
+    },
+  });
+}
+
+export function useRecurringTransactions(filters: {
+  page: number;
+  limit: number;
+}) {
+  return useQuery({
+    queryKey: ["recurring-transactions", "list", filters],
+    queryFn: async () => {
+      return await financeService.getRecurringTransactions(filters);
     },
   });
 }
@@ -111,6 +125,50 @@ export function useDeleteTransaction() {
   return useMutation({
     mutationFn: (id: string) => financeService.deleteTransaction(id),
     onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+  });
+}
+
+// --- Mutations Recorrência ---
+export function useCreateRecurringTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (data: CreateRecurringTransactionDTO) =>
+      financeService.createRecurringTransaction(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+  });
+}
+
+export function useUpdateRecurringTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<CreateRecurringTransactionDTO> & { isActive?: boolean };
+    }) => financeService.updateRecurringTransaction(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+  });
+}
+
+export function useDeleteRecurringTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => financeService.deleteRecurringTransaction(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["recurring-transactions"] });
       queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
