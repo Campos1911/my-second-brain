@@ -29,6 +29,7 @@ export function useCategories() {
     queryKey: ["categories"],
     queryFn: async () => {
       const response = await financeService.getCategories();
+      // O backend envelopa a resposta em { data: Category[] }
       const categories = response.data;
       return Array.isArray(categories) ? categories : [];
     },
@@ -52,7 +53,6 @@ export function useTransactions(filters: UseTransactionsFilters) {
   });
 }
 
-// Hook para o resumo consolidado
 export function useTransactionSummary(filters: UseTransactionSummaryFilters) {
   return useQuery<TransactionSummary>({
     queryKey: ["transactions", "summary", filters],
@@ -77,6 +77,18 @@ export function useCreateCategory() {
       financeService.createCategory(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["categories"] });
+    },
+  });
+}
+
+export function useDeleteCategory() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => financeService.deleteCategory(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["categories"] });
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
     },
   });
 }

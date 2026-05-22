@@ -4,6 +4,7 @@ import { useEffect, useState, useTransition, Suspense } from "react";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { TransactionList } from "@/features/finance/components/TransactionList";
 import { CreateTransactionModal } from "@/features/finance/components/CreateTransactionModal";
+import { ManageCategoriesModal } from "@/features/finance/components/ManageCategoriesModal"; // Novo import
 import { MonthSelector } from "@/features/finance/components/MonthSelector";
 import { FinanceSummary } from "@/features/finance/components/FinanceSummary";
 import { CategoryFilter } from "@/features/finance/components/CategoryFilter";
@@ -12,7 +13,7 @@ import {
   useTransactionSummary,
 } from "@/features/finance/hooks/useFinance";
 import { Pagination } from "@/components/Pagination";
-import { Plus, Wallet, CreditCard, Layers } from "lucide-react";
+import { Plus, Wallet, CreditCard, Layers, Settings } from "lucide-react"; // Importação do ícone de engrenagem
 import { PaymentMethod } from "@/features/finance/types";
 
 function DashboardContent() {
@@ -22,6 +23,7 @@ function DashboardContent() {
   const [, startTransition] = useTransition();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [isManageModalOpen, setIsManageModalOpen] = useState(false); // Estado para gerenciar categorias
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [currentPage, setCurrentPage] = useState(1);
   const LIMIT_PER_PAGE = 10;
@@ -168,8 +170,22 @@ function DashboardContent() {
       {/* Cards de Resumo */}
       <FinanceSummary summary={summaryData} isLoading={isLoadingSummary} />
 
-      {/* Componente de Filtro de Categorias */}
-      <section className="bg-card/40 border border-border/60 p-4 rounded-2xl">
+      {/* Componente de Filtro de Categorias e botão de Configuração */}
+      <section className="bg-card/40 border border-border/60 p-4 rounded-2xl space-y-4">
+        <div className="flex items-center justify-between">
+          <h3 className="text-xs sm:text-sm font-semibold uppercase tracking-wider text-muted-foreground flex items-center gap-2">
+            <Layers className="w-4 h-4" />
+            Filtrar por Categorias
+          </h3>
+          <button
+            onClick={() => setIsManageModalOpen(true)}
+            className="p-1.5 hover:bg-muted text-muted-foreground hover:text-purple-400 rounded-lg transition-colors flex items-center gap-1.5 text-xs font-medium"
+            title="Gerenciar Categorias"
+          >
+            <Settings className="w-4 h-4" />
+            <span className="hidden sm:inline">Gerenciar</span>
+          </button>
+        </div>
         <CategoryFilter
           selectedCategoryIds={selectedCategoryIds}
           onChange={handleCategoryChange}
@@ -242,6 +258,12 @@ function DashboardContent() {
       <CreateTransactionModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
+      />
+
+      {/* Novo Modal de Gestão de Categorias */}
+      <ManageCategoriesModal
+        isOpen={isManageModalOpen}
+        onClose={() => setIsManageModalOpen(false)}
       />
     </div>
   );

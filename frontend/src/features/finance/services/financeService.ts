@@ -22,6 +22,10 @@ export const financeService = {
     return response.data;
   },
 
+  async deleteCategory(id: string): Promise<void> {
+    await api.delete(`/categories/${id}`);
+  },
+
   // Transações
   async getTransactions(params?: {
     page?: number;
@@ -31,7 +35,6 @@ export const financeService = {
     categoryIds?: string[];
     paymentMethod?: PaymentMethod;
   }): Promise<PaginatedResponse<Transaction>> {
-    // Normaliza os parâmetros para o formato esperado pelo backend
     const queryParams = params
       ? {
           ...params,
