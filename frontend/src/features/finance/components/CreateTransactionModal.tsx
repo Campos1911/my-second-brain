@@ -8,6 +8,7 @@ import { createTransactionSchema, CreateTransactionDTO } from "../types";
 import { useCreateTransaction, useCategories } from "../hooks/useFinance";
 import { motion, AnimatePresence } from "framer-motion";
 import { CreateCategoryModal } from "./CreateCategoryModal";
+import { CategorySelect } from "./CategorySelect"; // Importação do novo componente
 
 export function CreateTransactionModal({
   isOpen,
@@ -17,7 +18,8 @@ export function CreateTransactionModal({
   onClose: () => void;
 }) {
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
-  const { data: categories, isLoading: isLoadingCategories } = useCategories();
+  const { data: categories = [], isLoading: isLoadingCategories } =
+    useCategories();
   const { mutate: createTx, isPending } = useCreateTransaction();
 
   const {
@@ -36,6 +38,7 @@ export function CreateTransactionModal({
   });
 
   const selectedMethod = watch("paymentMethod");
+  const selectedCategoryId = watch("categoryId"); // Observa a categoria selecionada para alimentar o seletor
 
   const onSubmit = (data: CreateTransactionDTO) => {
     createTx(
@@ -159,7 +162,7 @@ export function CreateTransactionModal({
                   </div>
                 </div>
 
-                {/* Categorias */}
+                {/* Seletor de Categorias Customizado */}
                 <div>
                   <div className="flex justify-between items-center mb-1.5">
                     <label className="text-sm font-medium block">
@@ -173,23 +176,16 @@ export function CreateTransactionModal({
                       <Plus className="w-3 h-3" /> Nova Categoria
                     </button>
                   </div>
-                  <select
-                    {...register("categoryId")}
-                    disabled={isLoadingCategories}
-                    className="w-full bg-background border rounded-lg px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-purple-600/50"
-                  >
-                    <option value="">Selecione uma categoria</option>
-                    {categories?.map((cat) => (
-                      <option key={cat.id} value={cat.id}>
-                        {cat.name}
-                      </option>
-                    ))}
-                  </select>
-                  {errors.categoryId && (
-                    <span className="text-red-500 text-xs">
-                      {errors.categoryId.message}
-                    </span>
-                  )}
+
+                  <CategorySelect
+                    value={selectedCategoryId}
+                    onChange={(id) =>
+                      setValue("categoryId", id, { shouldValidate: true })
+                    }
+                    categories={categories}
+                    isLoading={isLoadingCategories}
+                    error={errors.categoryId?.message}
+                  />
                 </div>
 
                 <button
