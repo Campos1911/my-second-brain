@@ -51,7 +51,7 @@ export function FinanceSummary({
                 balance >= 0 ? "text-foreground" : "text-rose-500"
               }`}
             >
-              R$ {formatCurrency(balance)}
+              {formatCurrency(balance)}
             </h3>
           )}
         </div>
@@ -76,7 +76,7 @@ export function FinanceSummary({
             <div className={skeletonClass} />
           ) : (
             <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-emerald-500">
-              + R$ {formatCurrency(income)}
+              + {formatCurrency(income)}
             </h3>
           )}
         </div>
@@ -100,7 +100,7 @@ export function FinanceSummary({
             <div className={skeletonClass} />
           ) : (
             <h3 className="text-xl sm:text-2xl font-bold tracking-tight text-rose-500">
-              - R$ {formatCurrency(expense)}
+              - {formatCurrency(expense)}
             </h3>
           )}
         </div>
