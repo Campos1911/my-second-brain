@@ -7,7 +7,8 @@ import { AuthModule } from './auth/auth.module';
 import { FinanceModule } from './finance/finance.module';
 import { CategoriesModule } from './categories/categories.module';
 import { RecurringTransactionsModule } from './recurring-transactions/recurring-transactions.module';
-import { WorkoutPlansModule } from './workout-plans/workout-plans.module'; // Importação adicionada
+import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
+import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module'; // Importação adicionada
 
 @Module({
   imports: [
@@ -21,7 +22,8 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module'; // Im
     FinanceModule,
     CategoriesModule,
     RecurringTransactionsModule,
-    WorkoutPlansModule, // Registro adicionado
+    WorkoutPlansModule,
+    WorkoutSessionsModule,
   ],
   controllers: [],
   providers: [],
