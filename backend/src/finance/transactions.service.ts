@@ -7,6 +7,7 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateTransactionDto } from './dto/create-transaction.dto';
 import { Prisma } from '../generated/prisma/client';
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
 @Injectable()
 export class TransactionsService {
@@ -201,6 +202,44 @@ export class TransactionsService {
 
     if (!transaction) throw new NotFoundException('Transação não encontrada.');
     return transaction;
+  }
+
+  async update(id: string, userId: string, dto: UpdateTransactionDto) {
+    // 1. Validar se a transação existe e pertence ao usuário autenticado
+    const existingTransaction = await this.prisma.transaction.findFirst({
+      where: { id, userId, deletedAt: null },
+    });
+    if (!existingTransaction) {
+      throw new NotFoundException('Transação não encontrada.');
+    }
+
+    // 2. Se a categoria foi alterada, validar se a nova categoria é válida
+    if (dto.categoryId) {
+      const category = await this.prisma.category.findFirst({
+        where: {
+          id: dto.categoryId,
+          OR: [{ userId }, { userId: null }],
+          deletedAt: null,
+        },
+      });
+      if (!category) {
+        throw new NotFoundException('Categoria não encontrada ou inativa.');
+      }
+    }
+
+    // 3. Executar o update aplicando as conversões corretas
+    return await this.prisma.transaction.update({
+      where: { id },
+      data: {
+        amount:
+          dto.amount !== undefined ? new Prisma.Decimal(dto.amount) : undefined,
+        description: dto.description,
+        date: dto.date ? new Date(dto.date) : undefined,
+        categoryId: dto.categoryId,
+        paymentMethod: dto.paymentMethod,
+      },
+      select: this.transactionSelect,
+    });
   }
 
   async remove(id: string, userId: string) {

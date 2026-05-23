@@ -89,11 +89,19 @@ export const financeService = {
     return response.data;
   },
 
+  async updateTransaction(
+    id: string,
+    data: Partial<CreateTransactionDTO>,
+  ): Promise<Transaction> {
+    const response = await api.patch<Transaction>(`/transactions/${id}`, data);
+    return response.data;
+  },
+
   async deleteTransaction(id: string): Promise<void> {
     await api.delete(`/transactions/${id}`);
   },
 
-  // Transações Recorrentes (Novo Módulo)
+  // Transações Recorrentes
   async getRecurringTransactions(params?: {
     page?: number;
     limit?: number;

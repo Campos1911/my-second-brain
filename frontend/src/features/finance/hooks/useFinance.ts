@@ -119,6 +119,23 @@ export function useCreateTransaction() {
   });
 }
 
+export function useUpdateTransaction() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: ({
+      id,
+      data,
+    }: {
+      id: string;
+      data: Partial<CreateTransactionDTO>;
+    }) => financeService.updateTransaction(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["transactions"] });
+    },
+  });
+}
+
 export function useDeleteTransaction() {
   const queryClient = useQueryClient();
 

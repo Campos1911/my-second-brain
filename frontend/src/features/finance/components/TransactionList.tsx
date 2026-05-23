@@ -1,3 +1,5 @@
+// src/features/finance/components/TransactionList.tsx
+
 "use client";
 
 import { useDeleteTransaction } from "../hooks/useFinance";
@@ -6,6 +8,7 @@ import {
   ArrowDownIcon,
   ArrowUpIcon,
   Trash2,
+  Pencil,
   Wallet,
   CreditCard,
   FilterX,
@@ -19,6 +22,7 @@ interface TransactionListProps {
   isError: boolean;
   hasActiveFilters: boolean;
   onClearFilters?: () => void;
+  onEdit?: (transaction: Transaction) => void;
 }
 
 export function TransactionList({
@@ -27,6 +31,7 @@ export function TransactionList({
   isError,
   hasActiveFilters,
   onClearFilters,
+  onEdit,
 }: TransactionListProps) {
   const { mutate: deleteTx, isPending: isDeleting } = useDeleteTransaction();
 
@@ -169,7 +174,7 @@ export function TransactionList({
                 </div>
               </div>
 
-              {/* Lado Direito: Valor + Botão Excluir */}
+              {/* Lado Direito: Valor + Ações */}
               <div className="flex items-center gap-2 sm:gap-4 shrink-0 pl-1">
                 <span
                   className={`font-semibold text-sm sm:text-base whitespace-nowrap ${
@@ -178,14 +183,27 @@ export function TransactionList({
                 >
                   {isIncome ? "+" : "-"} R$ {formatCurrency(tx.amount)}
                 </span>
-                <button
-                  onClick={() => deleteTx(tx.id)}
-                  disabled={isDeleting}
-                  className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all active:scale-95 shrink-0"
-                  aria-label="Excluir transação"
-                >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+
+                <div className="flex items-center gap-1">
+                  {onEdit && (
+                    <button
+                      onClick={() => onEdit(tx)}
+                      className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 text-muted-foreground hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all active:scale-95 shrink-0"
+                      aria-label="Editar transação"
+                    >
+                      <Pencil className="w-4 h-4" />
+                    </button>
+                  )}
+
+                  <button
+                    onClick={() => deleteTx(tx.id)}
+                    disabled={isDeleting}
+                    className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-2 text-muted-foreground hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all active:scale-95 shrink-0"
+                    aria-label="Excluir transação"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
             </motion.div>
           );

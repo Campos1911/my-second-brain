@@ -9,6 +9,7 @@ import {
   UseGuards,
   ParseIntPipe,
   BadRequestException,
+  Patch,
 } from '@nestjs/common';
 import { AuthGuard } from '@nestjs/passport';
 import { TransactionsService } from './transactions.service';
@@ -22,6 +23,7 @@ import {
   ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
+import { UpdateTransactionDto } from './dto/update-transaction.dto';
 
 @ApiTags('Financeiro')
 @ApiBearerAuth('access-token')
@@ -151,6 +153,25 @@ export class TransactionsController {
   @ApiResponse({ status: 404, description: 'Transação não encontrada.' })
   async findOne(@Param('id') id: string, @GetCurrentUserId() userId: string) {
     return this.transactionsService.findOne(id, userId);
+  }
+
+  @Patch(':id')
+  @ApiOperation({ summary: 'Atualizar uma transação financeira existente' })
+  @ApiParam({ name: 'id', description: 'ID da transação (UUID)', type: String })
+  @ApiResponse({
+    status: 200,
+    description: 'Transação atualizada com sucesso.',
+  })
+  @ApiResponse({
+    status: 404,
+    description: 'Transação ou nova categoria não encontrada.',
+  })
+  async update(
+    @Param('id') id: string,
+    @GetCurrentUserId() userId: string,
+    @Body() dto: UpdateTransactionDto,
+  ) {
+    return this.transactionsService.update(id, userId, dto);
   }
 
   @Delete(':id')
