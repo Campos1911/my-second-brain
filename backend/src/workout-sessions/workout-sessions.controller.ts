@@ -18,7 +18,17 @@ import { StartSessionDto } from './dto/start-session.dto';
 import { LogSetDto } from './dto/log-set.dto';
 import { UpdateSetLogDto } from './dto/update-set-log.dto';
 import { GetCurrentUserId } from '../common/decorators/get-current-user-id.decorator';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 
+@ApiTags('Fitness - sessões de treinos')
+@ApiBearerAuth('access-token')
 @Controller('workout-sessions')
 @UseGuards(AuthGuard('jwt'))
 export class WorkoutSessionsController {
@@ -28,6 +38,14 @@ export class WorkoutSessionsController {
 
   @Post('start')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Iniciar cronômetro e sessão de treino para um plano',
+  })
+  @ApiResponse({ status: 201, description: 'Treino iniciado com sucesso.' })
+  @ApiResponse({
+    status: 400,
+    description: 'Já existe uma sessão de treino ativa.',
+  })
   async startSession(
     @GetCurrentUserId() userId: string,
     @Body() dto: StartSessionDto,
@@ -37,6 +55,15 @@ export class WorkoutSessionsController {
 
   @Post(':id/sets')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Registrar execução de uma série (peso e repetições)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da sessão de treino ativa (UUID)',
+    type: String,
+  })
+  @ApiResponse({ status: 201, description: 'Série registrada com sucesso.' })
   async logSet(
     @Param('id') sessionId: string,
     @GetCurrentUserId() userId: string,
@@ -47,6 +74,16 @@ export class WorkoutSessionsController {
 
   @Post(':id/finish')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Finalizar e persistir sessão de treino executada' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da sessão de treino ativa (UUID)',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Sessão finalizada com marcas e logs gravados.',
+  })
   async finishSession(
     @Param('id') sessionId: string,
     @GetCurrentUserId() userId: string,
@@ -55,6 +92,15 @@ export class WorkoutSessionsController {
   }
 
   @Patch('sets/:setId')
+  @ApiOperation({
+    summary: 'Editar dados de uma série executada no treino atual',
+  })
+  @ApiParam({
+    name: 'setId',
+    description: 'ID do log da série (UUID)',
+    type: String,
+  })
+  @ApiResponse({ status: 200, description: 'Série atualizada.' })
   async updateSet(
     @Param('setId') setId: string,
     @GetCurrentUserId() userId: string,
@@ -65,6 +111,15 @@ export class WorkoutSessionsController {
 
   @Delete('sets/:setId')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Remover log de execução de uma série de exercícios',
+  })
+  @ApiParam({
+    name: 'setId',
+    description: 'ID do log da série (UUID)',
+    type: String,
+  })
+  @ApiResponse({ status: 200, description: 'Série excluída com sucesso.' })
   async removeSet(
     @Param('setId') setId: string,
     @GetCurrentUserId() userId: string,
@@ -73,6 +128,19 @@ export class WorkoutSessionsController {
   }
 
   @Get('exercises/:exerciseId/progress')
+  @ApiOperation({
+    summary: 'Histórico de progressão de carga de um exercício específico',
+  })
+  @ApiParam({
+    name: 'exerciseId',
+    description: 'ID do exercício estruturado (UUID)',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description:
+      'Retorna a lista cronológica de cargas levantadas e o volume de treino.',
+  })
   async getExerciseProgress(
     @Param('exerciseId') exerciseId: string,
     @GetCurrentUserId() userId: string,
@@ -81,6 +149,9 @@ export class WorkoutSessionsController {
   }
 
   @Get()
+  @ApiOperation({ summary: 'Listar histórico de sessões de treino' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
   async findAll(
     @GetCurrentUserId() userId: string,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
@@ -90,12 +161,26 @@ export class WorkoutSessionsController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Obter painel completo da sessão e séries realizadas',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da sessão de treino (UUID)',
+    type: String,
+  })
   async findOne(@Param('id') id: string, @GetCurrentUserId() userId: string) {
     return this.workoutSessionsService.findOne(id, userId);
   }
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Remover sessão de treino e logs em cascata' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID da sessão de treino (UUID)',
+    type: String,
+  })
   async remove(@Param('id') id: string, @GetCurrentUserId() userId: string) {
     return this.workoutSessionsService.remove(id, userId);
   }

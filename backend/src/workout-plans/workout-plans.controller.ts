@@ -18,7 +18,17 @@ import { CreateWorkoutPlanDto } from './dto/create-workout-plan.dto';
 import { UpdateWorkoutPlanDto } from './dto/update-workout-plan.dto';
 import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { GetCurrentUserId } from '../common/decorators/get-current-user-id.decorator';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiResponse,
+  ApiBearerAuth,
+  ApiQuery,
+  ApiParam,
+} from '@nestjs/swagger';
 
+@ApiTags('Fitness - planos de treinos')
+@ApiBearerAuth('access-token')
 @Controller('workout-plans')
 @UseGuards(AuthGuard('jwt'))
 export class WorkoutPlansController {
@@ -26,6 +36,13 @@ export class WorkoutPlansController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Criar um plano de treino estruturado com exercícios',
+  })
+  @ApiResponse({
+    status: 201,
+    description: 'Plano e exercícios vinculados criados.',
+  })
   async create(
     @GetCurrentUserId() userId: string,
     @Body() dto: CreateWorkoutPlanDto,
@@ -34,6 +51,12 @@ export class WorkoutPlansController {
   }
 
   @Get()
+  @ApiOperation({
+    summary: 'Listar todos os planos de treino cadastrados pelo usuário',
+  })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiResponse({ status: 200, description: 'Retorna a lista de planos.' })
   async findAll(
     @GetCurrentUserId() userId: string,
     @Query('page', new ParseIntPipe({ optional: true })) page?: number,
@@ -43,11 +66,30 @@ export class WorkoutPlansController {
   }
 
   @Get(':id')
+  @ApiOperation({
+    summary: 'Obter exercícios e detalhes de um plano de treino',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID do plano de treino (UUID)',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Ficha de treino retornada com sucesso.',
+  })
   async findOne(@Param('id') id: string, @GetCurrentUserId() userId: string) {
     return this.workoutPlansService.findOne(id, userId);
   }
 
   @Patch(':id')
+  @ApiOperation({ summary: 'Atualizar o cabeçalho do plano de treino' })
+  @ApiParam({
+    name: 'id',
+    description: 'ID do plano de treino (UUID)',
+    type: String,
+  })
+  @ApiResponse({ status: 200, description: 'Dados atualizados com sucesso.' })
   async update(
     @Param('id') id: string,
     @GetCurrentUserId() userId: string,
@@ -58,16 +100,30 @@ export class WorkoutPlansController {
 
   @Delete(':id')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Excluir plano e exercícios associados em cascata (Soft Delete)',
+  })
+  @ApiParam({
+    name: 'id',
+    description: 'ID do plano de treino (UUID)',
+    type: String,
+  })
+  @ApiResponse({ status: 200, description: 'Plano de treino removido.' })
   async remove(@Param('id') id: string, @GetCurrentUserId() userId: string) {
     return this.workoutPlansService.remove(id, userId);
   }
 
-  // ==========================================
-  // ENDPOINTS DE EXERCÍCIOS VINCULADOS
-  // ==========================================
-
   @Post(':planId/exercises')
   @HttpCode(HttpStatus.CREATED)
+  @ApiOperation({
+    summary: 'Adicionar um exercício individual a um plano de treino ativo',
+  })
+  @ApiParam({
+    name: 'planId',
+    description: 'ID do plano de treino (UUID)',
+    type: String,
+  })
+  @ApiResponse({ status: 201, description: 'Exercício registrado no plano.' })
   async addExercise(
     @Param('planId') planId: string,
     @GetCurrentUserId() userId: string,
@@ -78,6 +134,23 @@ export class WorkoutPlansController {
 
   @Delete(':planId/exercises/:exerciseId')
   @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Remover logicamente um exercício de um plano de treino',
+  })
+  @ApiParam({
+    name: 'planId',
+    description: 'ID do plano de treino (UUID)',
+    type: String,
+  })
+  @ApiParam({
+    name: 'exerciseId',
+    description: 'ID do exercício vinculado (UUID)',
+    type: String,
+  })
+  @ApiResponse({
+    status: 200,
+    description: 'Exercício desvinculado e inativado.',
+  })
   async removeExercise(
     @Param('planId') planId: string,
     @Param('exerciseId') exerciseId: string,
