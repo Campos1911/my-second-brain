@@ -36,7 +36,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   // Módulos futuros e ativos do Second Brain
   const navigation: NavigationItem[] = [
     { name: "Finanças", href: "/finance", icon: Wallet, enabled: true },
-    { name: "Academia", href: "/fitness", icon: Dumbbell, enabled: false },
+    { name: "Academia", href: "/fitness", icon: Dumbbell, enabled: true },
     { name: "Estudos", href: "/studies", icon: GraduationCap, enabled: false },
   ];
 
