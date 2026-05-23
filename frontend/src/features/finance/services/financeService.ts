@@ -4,8 +4,6 @@ import { api } from "@/services/api";
 import {
   Category,
   Transaction,
-  ApiResponse,
-  PaginatedResponse,
   TransactionSummary,
   PaymentMethod,
   CreateTransactionDTO,
@@ -13,6 +11,7 @@ import {
   RecurringTransaction,
   CreateRecurringTransactionDTO,
 } from "../types";
+import { PaginatedResponse, ApiResponse } from "@/types";
 
 export const financeService = {
   // Categorias

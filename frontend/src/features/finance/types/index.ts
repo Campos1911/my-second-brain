@@ -12,24 +12,6 @@ export type RecurrenceFrequency =
   | "MONTHLY"
   | "YEARLY";
 
-export interface ApiResponse<T> {
-  data: T;
-  meta: {
-    total: number;
-    page: number;
-    lastPage: number;
-  };
-}
-
-export interface PaginatedResponse<T> {
-  data: T[];
-  meta: {
-    total: number;
-    page: number;
-    lastPage: number;
-  };
-}
-
 export interface Category {
   id: string;
   name: string;
