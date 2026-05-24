@@ -60,11 +60,6 @@ export type RecurringTransaction = Prisma.RecurringTransactionModel
  */
 export type Transaction = Prisma.TransactionModel
 /**
- * Model Asset
- * 
- */
-export type Asset = Prisma.AssetModel
-/**
  * Model WorkoutPlan
  * 
  */

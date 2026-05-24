@@ -388,7 +388,6 @@ export const ModelName = {
   Category: 'Category',
   RecurringTransaction: 'RecurringTransaction',
   Transaction: 'Transaction',
-  Asset: 'Asset',
   WorkoutPlan: 'WorkoutPlan',
   Exercise: 'Exercise',
   WorkoutSession: 'WorkoutSession',
@@ -408,7 +407,7 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
     omit: GlobalOmitOptions
   }
   meta: {
-    modelProps: "user" | "category" | "recurringTransaction" | "transaction" | "asset" | "workoutPlan" | "exercise" | "workoutSession" | "setLog"
+    modelProps: "user" | "category" | "recurringTransaction" | "transaction" | "workoutPlan" | "exercise" | "workoutSession" | "setLog"
     txIsolationLevel: TransactionIsolationLevel
   }
   model: {
@@ -705,80 +704,6 @@ export type TypeMap<ExtArgs extends runtime.Types.Extensions.InternalArgs = runt
         count: {
           args: Prisma.TransactionCountArgs<ExtArgs>
           result: runtime.Types.Utils.Optional<Prisma.TransactionCountAggregateOutputType> | number
-        }
-      }
-    }
-    Asset: {
-      payload: Prisma.$AssetPayload<ExtArgs>
-      fields: Prisma.AssetFieldRefs
-      operations: {
-        findUnique: {
-          args: Prisma.AssetFindUniqueArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload> | null
-        }
-        findUniqueOrThrow: {
-          args: Prisma.AssetFindUniqueOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>
-        }
-        findFirst: {
-          args: Prisma.AssetFindFirstArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload> | null
-        }
-        findFirstOrThrow: {
-          args: Prisma.AssetFindFirstOrThrowArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>
-        }
-        findMany: {
-          args: Prisma.AssetFindManyArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>[]
-        }
-        create: {
-          args: Prisma.AssetCreateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>
-        }
-        createMany: {
-          args: Prisma.AssetCreateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        createManyAndReturn: {
-          args: Prisma.AssetCreateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>[]
-        }
-        delete: {
-          args: Prisma.AssetDeleteArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>
-        }
-        update: {
-          args: Prisma.AssetUpdateArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>
-        }
-        deleteMany: {
-          args: Prisma.AssetDeleteManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateMany: {
-          args: Prisma.AssetUpdateManyArgs<ExtArgs>
-          result: BatchPayload
-        }
-        updateManyAndReturn: {
-          args: Prisma.AssetUpdateManyAndReturnArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>[]
-        }
-        upsert: {
-          args: Prisma.AssetUpsertArgs<ExtArgs>
-          result: runtime.Types.Utils.PayloadToResult<Prisma.$AssetPayload>
-        }
-        aggregate: {
-          args: Prisma.AssetAggregateArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AggregateAsset>
-        }
-        groupBy: {
-          args: Prisma.AssetGroupByArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AssetGroupByOutputType>[]
-        }
-        count: {
-          args: Prisma.AssetCountArgs<ExtArgs>
-          result: runtime.Types.Utils.Optional<Prisma.AssetCountAggregateOutputType> | number
         }
       }
     }
@@ -1175,19 +1100,6 @@ export const TransactionScalarFieldEnum = {
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
 
 
-export const AssetScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  ticker: 'ticker',
-  quantity: 'quantity',
-  bookValue: 'bookValue',
-  userId: 'userId',
-  deletedAt: 'deletedAt'
-} as const
-
-export type AssetScalarFieldEnum = (typeof AssetScalarFieldEnum)[keyof typeof AssetScalarFieldEnum]
-
-
 export const WorkoutPlanScalarFieldEnum = {
   id: 'id',
   name: 'name',
@@ -1497,7 +1409,6 @@ export type GlobalOmitConfig = {
   category?: Prisma.CategoryOmit
   recurringTransaction?: Prisma.RecurringTransactionOmit
   transaction?: Prisma.TransactionOmit
-  asset?: Prisma.AssetOmit
   workoutPlan?: Prisma.WorkoutPlanOmit
   exercise?: Prisma.ExerciseOmit
   workoutSession?: Prisma.WorkoutSessionOmit

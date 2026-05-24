@@ -55,7 +55,6 @@ export const ModelName = {
   Category: 'Category',
   RecurringTransaction: 'RecurringTransaction',
   Transaction: 'Transaction',
-  Asset: 'Asset',
   WorkoutPlan: 'WorkoutPlan',
   Exercise: 'Exercise',
   WorkoutSession: 'WorkoutSession',
@@ -134,19 +133,6 @@ export const TransactionScalarFieldEnum = {
 } as const
 
 export type TransactionScalarFieldEnum = (typeof TransactionScalarFieldEnum)[keyof typeof TransactionScalarFieldEnum]
-
-
-export const AssetScalarFieldEnum = {
-  id: 'id',
-  name: 'name',
-  ticker: 'ticker',
-  quantity: 'quantity',
-  bookValue: 'bookValue',
-  userId: 'userId',
-  deletedAt: 'deletedAt'
-} as const
-
-export type AssetScalarFieldEnum = (typeof AssetScalarFieldEnum)[keyof typeof AssetScalarFieldEnum]
 
 
 export const WorkoutPlanScalarFieldEnum = {
