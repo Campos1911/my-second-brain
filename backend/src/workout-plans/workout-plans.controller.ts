@@ -16,7 +16,6 @@ import { AuthGuard } from '@nestjs/passport';
 import { WorkoutPlansService } from './workout-plans.service';
 import { CreateWorkoutPlanDto } from './dto/create-workout-plan.dto';
 import { UpdateWorkoutPlanDto } from './dto/update-workout-plan.dto';
-import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { GetCurrentUserId } from '../common/decorators/get-current-user-id.decorator';
 import {
   ApiTags,
@@ -37,7 +36,8 @@ export class WorkoutPlansController {
   @Post()
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({
-    summary: 'Criar um plano de treino estruturado com exercícios',
+    summary:
+      'Criar um plano de treino estruturado (opcionalmente com exercícios iniciais)',
   })
   @ApiResponse({
     status: 201,
@@ -111,51 +111,5 @@ export class WorkoutPlansController {
   @ApiResponse({ status: 200, description: 'Plano de treino removido.' })
   async remove(@Param('id') id: string, @GetCurrentUserId() userId: string) {
     return this.workoutPlansService.remove(id, userId);
-  }
-
-  @Post(':planId/exercises')
-  @HttpCode(HttpStatus.CREATED)
-  @ApiOperation({
-    summary: 'Adicionar um exercício individual a um plano de treino ativo',
-  })
-  @ApiParam({
-    name: 'planId',
-    description: 'ID do plano de treino (UUID)',
-    type: String,
-  })
-  @ApiResponse({ status: 201, description: 'Exercício registrado no plano.' })
-  async addExercise(
-    @Param('planId') planId: string,
-    @GetCurrentUserId() userId: string,
-    @Body() dto: CreateExerciseDto,
-  ) {
-    return this.workoutPlansService.addExercise(planId, userId, dto);
-  }
-
-  @Delete(':planId/exercises/:exerciseId')
-  @HttpCode(HttpStatus.OK)
-  @ApiOperation({
-    summary: 'Remover logicamente um exercício de um plano de treino',
-  })
-  @ApiParam({
-    name: 'planId',
-    description: 'ID do plano de treino (UUID)',
-    type: String,
-  })
-  @ApiParam({
-    name: 'exerciseId',
-    description: 'ID do exercício vinculado (UUID)',
-    type: String,
-  })
-  @ApiResponse({
-    status: 200,
-    description: 'Exercício desvinculado e inativado.',
-  })
-  async removeExercise(
-    @Param('planId') planId: string,
-    @Param('exerciseId') exerciseId: string,
-    @GetCurrentUserId() userId: string,
-  ) {
-    return this.workoutPlansService.removeExercise(planId, exerciseId, userId);
   }
 }

@@ -7,7 +7,6 @@ import {
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateWorkoutPlanDto } from './dto/create-workout-plan.dto';
 import { UpdateWorkoutPlanDto } from './dto/update-workout-plan.dto';
-import { CreateExerciseDto } from './dto/create-exercise.dto';
 import { Prisma } from '../generated/prisma/client';
 
 @Injectable()
@@ -189,67 +188,6 @@ export class WorkoutPlansService {
       throw new InternalServerErrorException(
         'Erro ao remover o plano de treino.',
       );
-    }
-  }
-
-  // ==========================================
-  // OPERAÇÕES DE EXERCÍCIOS INDIVIDUAIS
-  // ==========================================
-
-  async addExercise(planId: string, userId: string, dto: CreateExerciseDto) {
-    await this.findOne(planId, userId);
-    await this.validateFitnessCategory(dto.categoryId, userId);
-
-    try {
-      return await this.prisma.exercise.create({
-        data: {
-          name: dto.name,
-          categoryId: dto.categoryId,
-          workoutPlanId: planId,
-        },
-        select: {
-          id: true,
-          name: true,
-          categoryId: true,
-          workoutPlanId: true,
-        },
-      });
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException(
-        'Erro ao adicionar exercício ao plano.',
-      );
-    }
-  }
-
-  async removeExercise(planId: string, exerciseId: string, userId: string) {
-    // Garante controle de propriedade do plano antes
-    await this.findOne(planId, userId);
-
-    const exercise = await this.prisma.exercise.findFirst({
-      where: {
-        id: exerciseId,
-        workoutPlanId: planId,
-        deletedAt: null,
-      },
-    });
-
-    if (!exercise) {
-      throw new NotFoundException(
-        'Exercício não encontrado neste plano de treino.',
-      );
-    }
-
-    try {
-      await this.prisma.exercise.update({
-        where: { id: exerciseId },
-        data: { deletedAt: new Date() },
-      });
-
-      return { message: 'Exercício removido do plano de treino com sucesso.' };
-    } catch (error) {
-      this.logger.error(error);
-      throw new InternalServerErrorException('Erro ao remover o exercício.');
     }
   }
 }
