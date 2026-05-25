@@ -1,7 +1,7 @@
 {
   "output": {
-    "filePath": "repomix-output-backend.xml",
-    "style": "xml",
+    "filePath": "repomix-output-backend.md",
+    "style": "markdown",
     "parsable": true
   },
   "include": ["**/*"],
@@ -13,7 +13,7 @@
       "**/dist/**",
       "**/generated/**",
       "**/prisma/migrations/**",
-      "**/repomix-output.xml",
+      "**/repomix-output.md",
       "**/yarn.lock",
       "**/package-lock.json",
       "**/pnpm-lock.yaml",

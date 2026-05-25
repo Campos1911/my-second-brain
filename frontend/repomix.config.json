@@ -1,7 +1,7 @@
 {
   "output": {
-    "filePath": "repomix-output-frontend.xml",
-    "style": "xml",
+    "filePath": "repomix-output-frontend.md",
+    "style": "markdown",
     "parsable": true,
     "headerText": "Repositório Next.js empacotado para análise."
   },
@@ -15,6 +15,7 @@
       "out/**",
       "build/**",
       "public/**",
+      "**/repomix-output.md",
       "**/*.log",
       "package-lock.json",
       "yarn.lock",
