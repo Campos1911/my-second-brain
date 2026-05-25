@@ -21,16 +21,19 @@ import { EditExerciseModal } from "./EditExerciseModal";
 
 interface WorkoutPlanCardProps {
   plan: WorkoutPlan;
+  isExpanded: boolean;
+  onToggle: () => void;
   onStartWorkout: (planId: string) => void;
   isStartingWorkout?: boolean;
 }
 
 export function WorkoutPlanCard({
   plan,
+  isExpanded,
+  onToggle,
   onStartWorkout,
   isStartingWorkout = false,
 }: WorkoutPlanCardProps) {
-  const [isExpanded, setIsExpanded] = useState(false);
   const [isAddExerciseOpen, setIsAddExerciseOpen] = useState(false);
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
@@ -83,7 +86,7 @@ export function WorkoutPlanCard({
           </button>
 
           <button
-            onClick={() => setIsExpanded(!isExpanded)}
+            onClick={onToggle}
             className={`p-2.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-xl transition-transform duration-200 ${isExpanded ? "rotate-180" : "rotate-0"}`}
           >
             <ChevronDown className="w-4 h-4" />
@@ -142,7 +145,7 @@ export function WorkoutPlanCard({
                         >
                           <Pencil className="w-3.5 h-3.5" />
                         </button>
-                        {/* Botão Remover Exercício (Direct Delete) */}
+                        {/* Botão Remover Exercício */}
                         <button
                           onClick={() => deleteExercise(ex.id)}
                           disabled={isDeletingExercise}

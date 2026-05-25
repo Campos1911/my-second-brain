@@ -26,7 +26,6 @@ import {
   Calendar,
   TrendingUp,
   ArrowRight,
-  Loader2,
   Library,
   Search,
   Trash2,
@@ -47,6 +46,9 @@ export default function FitnessDashboardPage() {
   );
   const [selectedExerciseId, setSelectedExerciseId] = useState<string>("");
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
+
+  // Estado para controle de qual ficha está expandida (Apenas uma por vez)
+  const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
   // Estados locais para a Biblioteca (Library)
   const [libraryPage, setLibraryPage] = useState(1);
@@ -108,6 +110,10 @@ export default function FitnessDashboardPage() {
     );
   };
 
+  const handleTogglePlan = (planId: string) => {
+    setExpandedPlanId((prevId) => (prevId === planId ? null : planId));
+  };
+
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0 py-4 sm:py-0 text-zinc-100">
       {/* Header */}
@@ -164,7 +170,7 @@ export default function FitnessDashboardPage() {
       <div className="flex flex-wrap bg-zinc-950/40 border border-zinc-900/60 p-1.5 rounded-2xl gap-1">
         <button
           onClick={() => setActiveTab("PLANS")}
-          className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 min-w-20 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === "PLANS"
               ? "bg-zinc-900 text-purple-400 shadow-sm border border-zinc-800/80"
               : "text-zinc-500 hover:text-zinc-300"
@@ -175,7 +181,7 @@ export default function FitnessDashboardPage() {
         </button>
         <button
           onClick={() => setActiveTab("LIBRARY")}
-          className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 min-w-20 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === "LIBRARY"
               ? "bg-zinc-900 text-purple-400 shadow-sm border border-zinc-800/80"
               : "text-zinc-500 hover:text-zinc-300"
@@ -186,7 +192,7 @@ export default function FitnessDashboardPage() {
         </button>
         <button
           onClick={() => setActiveTab("HISTORY")}
-          className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 min-w-20 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === "HISTORY"
               ? "bg-zinc-900 text-purple-400 shadow-sm border border-zinc-800/80"
               : "text-zinc-500 hover:text-zinc-300"
@@ -197,7 +203,7 @@ export default function FitnessDashboardPage() {
         </button>
         <button
           onClick={() => setActiveTab("ANALYTICS")}
-          className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 min-w-20 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === "ANALYTICS"
               ? "bg-zinc-900 text-purple-400 shadow-sm border border-zinc-800/80"
               : "text-zinc-500 hover:text-zinc-300"
@@ -234,11 +240,14 @@ export default function FitnessDashboardPage() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              /* ADICIONADO: "items-start" para evitar o alongamento vertical automático do CSS Grid */
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                 {plans.map((p) => (
                   <WorkoutPlanCard
                     key={p.id}
                     plan={p}
+                    isExpanded={expandedPlanId === p.id}
+                    onToggle={() => handleTogglePlan(p.id)}
                     onStartWorkout={handleStartSession}
                     isStartingWorkout={isStartingSession}
                   />
@@ -441,7 +450,7 @@ export default function FitnessDashboardPage() {
                 </p>
                 <p className="text-xs text-zinc-500 mt-1">
                   Selecione um exercício da lista acima para plotar o histórico
-                  de forças.
+                  de forces.
                 </p>
               </div>
             )}
