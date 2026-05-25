@@ -159,7 +159,7 @@ export default function FitnessDashboardPage() {
           }`}
         >
           <Dumbbell className="w-4 h-4" />
-          Fichas de Treino
+          Fichas
         </button>
         <button
           onClick={() => setActiveTab("HISTORY")}
