@@ -6,28 +6,31 @@ import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import {
   useWorkoutPlans,
-  useCreateWorkoutPlan,
-  useFitnessCategories,
+  useExercises,
+  useDeleteExercise,
   useStartWorkoutSession,
-  useActiveSessionDetail,
 } from "@/features/fitness/hooks/useFitness";
 import { useActiveWorkoutStore } from "@/features/fitness/store/activeWorkoutStore";
 import { useQuery } from "@tanstack/react-query";
 import { fitnessService } from "@/features/fitness/services/fitnessService";
 import { WorkoutPlanCard } from "@/features/fitness/components/WorkoutPlanCard";
 import { CreatePlanModal } from "@/features/fitness/components/CreatePlanModal";
+import { EditExerciseModal } from "@/features/fitness/components/EditExerciseModal";
 import { SessionDetailModal } from "@/features/fitness/components/SessionDetailModal";
 import { ExerciseProgressChart } from "@/features/fitness/components/ExerciseProgressChart";
 import { Pagination } from "@/components/Pagination";
+import { Exercise } from "@/features/fitness/types";
 import {
   Dumbbell,
   Plus,
   Calendar,
   TrendingUp,
-  RefreshCw,
-  Layers,
   ArrowRight,
   Loader2,
+  Library,
+  Search,
+  Trash2,
+  Pencil,
 } from "lucide-react";
 import { parseUTCToLocalDate } from "@/lib/utils";
 
@@ -35,25 +38,26 @@ export default function FitnessDashboardPage() {
   const router = useRouter();
   const [, startTransition] = useTransition();
 
-  const [activeTab, setActiveTab] = useState<"PLANS" | "HISTORY" | "ANALYTICS">(
-    "PLANS",
-  );
+  const [activeTab, setActiveTab] = useState<
+    "PLANS" | "HISTORY" | "ANALYTICS" | "LIBRARY"
+  >("PLANS");
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
-
-  // Detalhe de sessões anteriores
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
     null,
   );
-
-  // Evolução de Exercícios
   const [selectedExerciseId, setSelectedExerciseId] = useState<string>("");
+  const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
 
-  // Paginação
+  // Estados locais para a Biblioteca (Library)
+  const [libraryPage, setLibraryPage] = useState(1);
+  const [searchQuery, setSearchQuery] = useState("");
+
+  // Paginação Geral
   const [currentPage, setCurrentPage] = useState(1);
   const LIMIT = 10;
 
   // Zustand: Estado de treino ativo local
-  const { activeSessionId, startedAt, startSession } = useActiveWorkoutStore();
+  const { activeSessionId, startSession } = useActiveWorkoutStore();
 
   // Queries
   const { data: plansData, isLoading: isLoadingPlans } = useWorkoutPlans();
@@ -65,15 +69,25 @@ export default function FitnessDashboardPage() {
     enabled: activeTab === "HISTORY",
   });
 
+  const { data: libraryData, isLoading: isLoadingLibrary } = useExercises({
+    page: libraryPage,
+    limit: LIMIT,
+    search: searchQuery || undefined,
+  });
+
   const { data: exercisesPlanData } = useWorkoutPlans({ page: 1, limit: 100 });
 
   // Mutations
   const { mutate: startBackendSession, isPending: isStartingSession } =
     useStartWorkoutSession();
+  const { mutate: deleteExercise } = useDeleteExercise();
 
   const plans = plansData?.data || [];
   const history = historyData?.data || [];
   const historyMeta = historyData?.meta || { total: 0, page: 1, lastPage: 1 };
+
+  const libraryExercises = libraryData?.data || [];
+  const libraryMeta = libraryData?.meta || { total: 0, page: 1, lastPage: 1 };
 
   // Junta todos os exercícios de todas as fichas para preencher o seletor evolutivo
   const allExercises = (exercisesPlanData?.data || []).flatMap(
@@ -81,12 +95,10 @@ export default function FitnessDashboardPage() {
   );
 
   const handleStartSession = (workoutPlanId: string) => {
-    // Inicializa a sessão persistente no backend
     startBackendSession(
       { workoutPlanId },
       {
         onSuccess: (newSession) => {
-          // Salva os dados no store global Zustand
           startSession(newSession.id, workoutPlanId, newSession.startedAt);
           startTransition(() => {
             router.push("/fitness/active");
@@ -149,10 +161,10 @@ export default function FitnessDashboardPage() {
       )}
 
       {/* Abas Superiores de Controle */}
-      <div className="flex bg-zinc-950/40 border border-zinc-900/60 p-1.5 rounded-2xl">
+      <div className="flex flex-wrap bg-zinc-950/40 border border-zinc-900/60 p-1.5 rounded-2xl gap-1">
         <button
           onClick={() => setActiveTab("PLANS")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === "PLANS"
               ? "bg-zinc-900 text-purple-400 shadow-sm border border-zinc-800/80"
               : "text-zinc-500 hover:text-zinc-300"
@@ -162,8 +174,19 @@ export default function FitnessDashboardPage() {
           Fichas
         </button>
         <button
+          onClick={() => setActiveTab("LIBRARY")}
+          className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+            activeTab === "LIBRARY"
+              ? "bg-zinc-900 text-purple-400 shadow-sm border border-zinc-800/80"
+              : "text-zinc-500 hover:text-zinc-300"
+          }`}
+        >
+          <Library className="w-4 h-4" />
+          Biblioteca
+        </button>
+        <button
           onClick={() => setActiveTab("HISTORY")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === "HISTORY"
               ? "bg-zinc-900 text-purple-400 shadow-sm border border-zinc-800/80"
               : "text-zinc-500 hover:text-zinc-300"
@@ -174,7 +197,7 @@ export default function FitnessDashboardPage() {
         </button>
         <button
           onClick={() => setActiveTab("ANALYTICS")}
-          className={`flex-1 flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
+          className={`flex-1 min-w-[80px] flex items-center justify-center gap-2 py-2.5 text-xs sm:text-sm font-semibold rounded-xl transition-all cursor-pointer ${
             activeTab === "ANALYTICS"
               ? "bg-zinc-900 text-purple-400 shadow-sm border border-zinc-800/80"
               : "text-zinc-500 hover:text-zinc-300"
@@ -225,7 +248,103 @@ export default function FitnessDashboardPage() {
           </div>
         )}
 
-        {/* TAB 2: Histórico */}
+        {/* TAB 2: Biblioteca Unificada de Exercícios */}
+        {activeTab === "LIBRARY" && (
+          <div className="space-y-5">
+            {/* Filtros de Busca */}
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4.5 h-4.5" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => {
+                  setSearchQuery(e.target.value);
+                  setLibraryPage(1);
+                }}
+                placeholder="Buscar exercício pelo nome..."
+                className="w-full bg-zinc-950/60 border border-zinc-800 pl-10 pr-4 py-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-600/50 text-zinc-100 placeholder:text-zinc-600 transition-all"
+              />
+            </div>
+
+            {isLoadingLibrary ? (
+              <div className="space-y-2">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-14 bg-zinc-900/40 border border-zinc-800/60 rounded-xl animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : libraryExercises.length === 0 ? (
+              <div className="py-16 text-center border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/10">
+                <Library className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-zinc-400">
+                  Nenhum exercício encontrado
+                </p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Crie exercícios inserindo-os diretamente em suas fichas de
+                  treino.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-2">
+                {libraryExercises.map((exercise) => (
+                  <div
+                    key={exercise.id}
+                    className="flex items-center justify-between p-4 bg-zinc-900/40 border border-zinc-800 rounded-xl group hover:border-purple-500/30 transition-colors"
+                  >
+                    <div className="min-w-0 flex-1 pr-4">
+                      <h4 className="font-bold text-sm text-zinc-200 truncate">
+                        {exercise.name}
+                      </h4>
+                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                        <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
+                          {exercise.category?.name || "Fitness"}
+                        </span>
+                        {exercise.workoutPlan && (
+                          <>
+                            <span className="text-zinc-600 text-xs">•</span>
+                            <span className="text-xs text-zinc-500">
+                              Vínculo:{" "}
+                              <strong className="text-zinc-400">
+                                {exercise.workoutPlan.name}
+                              </strong>
+                            </span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-1.5 shrink-0">
+                      <button
+                        onClick={() => setExerciseToEdit(exercise)}
+                        className="p-2 text-zinc-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all"
+                        title="Editar Exercício"
+                      >
+                        <Pencil className="w-4 h-4" />
+                      </button>
+                      <button
+                        onClick={() => deleteExercise(exercise.id)}
+                        className="p-2 text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all"
+                        title="Deletar Exercício"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </button>
+                    </div>
+                  </div>
+                ))}
+
+                <Pagination
+                  currentPage={libraryPage}
+                  lastPage={libraryMeta.lastPage}
+                  onPageChange={(page) => setLibraryPage(page)}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 3: Histórico */}
         {activeTab === "HISTORY" && (
           <div className="space-y-4">
             {isLoadingHistory ? (
@@ -285,10 +404,9 @@ export default function FitnessDashboardPage() {
           </div>
         )}
 
-        {/* TAB 3: Evolução de Cargas */}
+        {/* TAB 4: Evolução de Cargas */}
         {activeTab === "ANALYTICS" && (
           <div className="space-y-4">
-            {/* Seletor de Exercício */}
             <div className="space-y-1.5">
               <label className="text-xs font-bold text-zinc-500 uppercase tracking-wider">
                 Selecione o Exercício
@@ -344,6 +462,13 @@ export default function FitnessDashboardPage() {
           sessionId={selectedSessionId}
         />
       )}
+
+      {/* Modal para gerenciar atualizações dos exercícios */}
+      <EditExerciseModal
+        isOpen={!!exerciseToEdit}
+        onClose={() => setExerciseToEdit(null)}
+        exercise={exerciseToEdit}
+      />
     </div>
   );
 }

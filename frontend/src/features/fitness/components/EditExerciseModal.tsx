@@ -1,49 +1,67 @@
-// src/features/fitness/components/AddExerciseModal.tsx
+// src/features/fitness/components/EditExerciseModal.tsx
 
 "use client";
 
+import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { X, Loader2, Dumbbell } from "lucide-react";
-import { createExerciseSchema, CreateExerciseDTO } from "../types";
-import { useCreateExercise, useFitnessCategories } from "../hooks/useFitness";
+import { X, Loader2, Pencil } from "lucide-react";
+import { updateExerciseSchema, UpdateExerciseDTO, Exercise } from "../types";
+import {
+  useUpdateExercise,
+  useFitnessCategories,
+  useWorkoutPlans,
+} from "../hooks/useFitness";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface AddExerciseModalProps {
+interface EditExerciseModalProps {
   isOpen: boolean;
   onClose: () => void;
-  planId: string;
+  exercise: Exercise | null;
 }
 
-export function AddExerciseModal({
+export function EditExerciseModal({
   isOpen,
   onClose,
-  planId,
-}: AddExerciseModalProps) {
-  const { mutate: createExercise, isPending } = useCreateExercise();
+  exercise,
+}: EditExerciseModalProps) {
+  const { mutate: updateExercise, isPending } = useUpdateExercise();
   const { data: categories = [], isLoading: isLoadingCategories } =
     useFitnessCategories();
+  const { data: plansData, isLoading: isLoadingPlans } = useWorkoutPlans({
+    page: 1,
+    limit: 100,
+  });
+
+  const plans = plansData?.data || [];
 
   const {
     register,
     handleSubmit,
     reset,
     formState: { errors },
-  } = useForm<CreateExerciseDTO>({
-    resolver: zodResolver(createExerciseSchema),
-    defaultValues: { name: "", categoryId: "", workoutPlanId: planId },
+  } = useForm<UpdateExerciseDTO>({
+    resolver: zodResolver(updateExerciseSchema),
   });
 
-  const onSubmit = (data: CreateExerciseDTO) => {
-    // Garante que o plano fornecido no gatilho seja mantido
-    createExercise(
-      {
-        ...data,
-        workoutPlanId: planId,
-      },
+  // Alimenta os campos quando um exercício válido é selecionado
+  useEffect(() => {
+    if (exercise) {
+      reset({
+        name: exercise.name,
+        categoryId: exercise.categoryId,
+        workoutPlanId: exercise.workoutPlanId,
+      });
+    }
+  }, [exercise, reset]);
+
+  const onSubmit = (data: UpdateExerciseDTO) => {
+    if (!exercise) return;
+
+    updateExercise(
+      { id: exercise.id, data },
       {
         onSuccess: () => {
-          reset();
           onClose();
         },
       },
@@ -52,7 +70,7 @@ export function AddExerciseModal({
 
   return (
     <AnimatePresence>
-      {isOpen && (
+      {isOpen && exercise && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <motion.div
             initial={{ opacity: 0 }}
@@ -70,8 +88,8 @@ export function AddExerciseModal({
           >
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-xl font-bold flex items-center gap-2">
-                <Dumbbell className="w-5 h-5 text-purple-500" />
-                Adicionar Exercício
+                <Pencil className="w-5 h-5 text-purple-500" />
+                Editar Exercício
               </h2>
               <button
                 onClick={onClose}
@@ -89,9 +107,8 @@ export function AddExerciseModal({
                 </label>
                 <input
                   {...register("name")}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all placeholder:text-zinc-600"
-                  placeholder="Ex: Supino Inclinado, Agachamento Búlgaro..."
-                  autoFocus
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all placeholder:text-zinc-600 text-zinc-100"
+                  placeholder="Ex: Supino Inclinado"
                 />
                 {errors.name && (
                   <span className="text-rose-500 text-xs font-medium">
@@ -110,11 +127,6 @@ export function AddExerciseModal({
                   disabled={isLoadingCategories}
                   className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all text-zinc-200"
                 >
-                  <option value="" disabled className="text-zinc-600">
-                    {isLoadingCategories
-                      ? "Carregando grupamentos..."
-                      : "Selecione o grupamento..."}
-                  </option>
                   {categories.map((cat) => (
                     <option
                       key={cat.id}
@@ -132,12 +144,32 @@ export function AddExerciseModal({
                 )}
               </div>
 
-              {/* Input Invisível para o workoutPlanId para validação do Zod */}
-              <input
-                type="hidden"
-                {...register("workoutPlanId")}
-                value={planId}
-              />
+              {/* Seletor para Mover o Exercício para outro Plano */}
+              <div className="space-y-1.5">
+                <label className="text-sm font-semibold text-zinc-300">
+                  Ficha / Plano de Treino
+                </label>
+                <select
+                  {...register("workoutPlanId")}
+                  disabled={isLoadingPlans}
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all text-zinc-200"
+                >
+                  {plans.map((p) => (
+                    <option
+                      key={p.id}
+                      value={p.id}
+                      className="bg-zinc-900 text-zinc-100"
+                    >
+                      {p.name}
+                    </option>
+                  ))}
+                </select>
+                {errors.workoutPlanId && (
+                  <span className="text-rose-500 text-xs font-medium">
+                    {errors.workoutPlanId.message}
+                  </span>
+                )}
+              </div>
 
               {/* Botões */}
               <div className="flex gap-3 justify-end pt-4 border-t border-zinc-800/50">
@@ -150,13 +182,13 @@ export function AddExerciseModal({
                 </button>
                 <button
                   type="submit"
-                  disabled={isPending || isLoadingCategories}
+                  disabled={isPending}
                   className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-sm font-semibold rounded-xl transition-colors flex items-center justify-center min-w-25 cursor-pointer"
                 >
                   {isPending ? (
                     <Loader2 className="w-4 h-4 animate-spin" />
                   ) : (
-                    "Adicionar"
+                    "Atualizar"
                   )}
                 </button>
               </div>

@@ -1,3 +1,5 @@
+// src/features/fitness/services/fitnessService.ts
+
 import { api } from "@/services/api";
 import {
   WorkoutPlan,
@@ -8,6 +10,7 @@ import {
   CreateWorkoutPlanDTO,
   UpdateWorkoutPlanDTO,
   CreateExerciseDTO,
+  UpdateExerciseDTO,
   StartSessionDTO,
   LogSetDTO,
   UpdateSetLogDTO,
@@ -56,27 +59,39 @@ export const fitnessService = {
   },
 
   // ==========================================
-  // EXERCÍCIOS INDIVIDUAIS DO PLANO
+  // GERENCIAMENTO DIRETO DE EXERCÍCIOS
   // ==========================================
 
-  async addExerciseToPlan(
-    planId: string,
-    data: CreateExerciseDTO,
-  ): Promise<Exercise> {
-    const response = await api.post<Exercise>(
-      `/workout-plans/${planId}/exercises`,
-      data,
-    );
+  async getExercises(params?: {
+    page?: number;
+    limit?: number;
+    search?: string;
+    categoryId?: string;
+    workoutPlanId?: string;
+  }): Promise<PaginatedResponse<Exercise>> {
+    const response = await api.get<PaginatedResponse<Exercise>>("/exercises", {
+      params,
+    });
     return response.data;
   },
 
-  async removeExerciseFromPlan(
-    planId: string,
-    exerciseId: string,
-  ): Promise<{ message: string }> {
-    const response = await api.delete<{ message: string }>(
-      `/workout-plans/${planId}/exercises/${exerciseId}`,
-    );
+  async getExerciseById(id: string): Promise<Exercise> {
+    const response = await api.get<Exercise>(`/exercises/${id}`);
+    return response.data;
+  },
+
+  async createExercise(data: CreateExerciseDTO): Promise<Exercise> {
+    const response = await api.post<Exercise>("/exercises", data);
+    return response.data;
+  },
+
+  async updateExercise(id: string, data: UpdateExerciseDTO): Promise<Exercise> {
+    const response = await api.patch<Exercise>(`/exercises/${id}`, data);
+    return response.data;
+  },
+
+  async deleteExercise(id: string): Promise<{ message: string }> {
+    const response = await api.delete<{ message: string }>(`/exercises/${id}`);
     return response.data;
   },
 

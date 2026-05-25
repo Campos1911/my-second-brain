@@ -1,3 +1,5 @@
+// src/features/fitness/hooks/useFitness.ts
+
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { fitnessService } from "../services/fitnessService";
 import { financeService } from "@/features/finance/services/financeService";
@@ -5,6 +7,7 @@ import {
   CreateWorkoutPlanDTO,
   UpdateWorkoutPlanDTO,
   CreateExerciseDTO,
+  UpdateExerciseDTO,
 } from "../types";
 
 // ==========================================
@@ -26,7 +29,19 @@ export function useWorkoutPlan(id: string) {
   });
 }
 
-// Busca categorias e filtra apenas por FITNESS
+export function useExercises(params?: {
+  page?: number;
+  limit?: number;
+  search?: string;
+  categoryId?: string;
+  workoutPlanId?: string;
+}) {
+  return useQuery({
+    queryKey: ["exercises", "list", params],
+    queryFn: () => fitnessService.getExercises(params),
+  });
+}
+
 export function useFitnessCategories() {
   return useQuery({
     queryKey: ["categories", "fitness-only"],
@@ -77,40 +92,57 @@ export function useDeleteWorkoutPlan() {
     mutationFn: (id: string) => fitnessService.deletePlan(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
     },
   });
 }
 
-// Gerenciamento de Exercícios individuais dentro de um plano
-export function useAddExerciseToPlan(planId: string) {
+// ==========================================
+// CRUD DESACOPLADO DE EXERCÍCIOS INDIVIDUAIS
+// ==========================================
+
+export function useCreateExercise() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: (data: CreateExerciseDTO) =>
-      fitnessService.addExerciseToPlan(planId, data),
+      fitnessService.createExercise(data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workout-plans", "list"] });
-      queryClient.invalidateQueries({
-        queryKey: ["workout-plans", "detail", planId],
-      });
+      // Invalida a árvore de planos e exercícios unificados
+      queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
     },
   });
 }
 
-export function useRemoveExerciseFromPlan(planId: string) {
+export function useUpdateExercise() {
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: (exerciseId: string) =>
-      fitnessService.removeExerciseFromPlan(planId, exerciseId),
+    mutationFn: ({ id, data }: { id: string; data: UpdateExerciseDTO }) =>
+      fitnessService.updateExercise(id, data),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["workout-plans", "list"] });
-      queryClient.invalidateQueries({
-        queryKey: ["workout-plans", "detail", planId],
-      });
+      queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
     },
   });
 }
+
+export function useDeleteExercise() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: (id: string) => fitnessService.deleteExercise(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      queryClient.invalidateQueries({ queryKey: ["exercises"] });
+    },
+  });
+}
+
+// ==========================================
+// CONTROLE DE SESSÕES (WORKOUT SESSIONS)
+// ==========================================
 
 export function useStartWorkoutSession() {
   const queryClient = useQueryClient();
@@ -135,7 +167,6 @@ export function useLogSet(sessionId: string) {
       toFailure: boolean;
     }) => fitnessService.logSet(sessionId, data),
     onSuccess: () => {
-      // Atualiza os dados específicos desta sessão de treino
       queryClient.invalidateQueries({
         queryKey: ["workout-sessions", "detail", sessionId],
       });

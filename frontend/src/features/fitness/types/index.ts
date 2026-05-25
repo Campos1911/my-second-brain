@@ -3,9 +3,6 @@
 import { z } from "zod";
 import { Category } from "@/types";
 
-// Exportando tipos base reexportados para conveniência se necessário,
-// ou importados diretamente onde forem usados.
-
 // ==========================================
 // TIPOS E ENUMS DE DOMÍNIO EXCLUSIVOS DO FITNESS
 // ==========================================
@@ -16,6 +13,10 @@ export interface Exercise {
   categoryId: string;
   workoutPlanId: string;
   category?: Partial<Category>;
+  workoutPlan?: {
+    id: string;
+    name: string;
+  };
   deletedAt?: string | null;
 }
 
@@ -83,6 +84,13 @@ export interface ExerciseProgressResponse {
 export const createExerciseSchema = z.object({
   name: z.string().min(1, "O nome do exercício é obrigatório."),
   categoryId: z.string().uuid("Selecione uma categoria válida."),
+  workoutPlanId: z.string().uuid("Selecione uma ficha de treino válida."),
+});
+
+export const updateExerciseSchema = z.object({
+  name: z.string().min(1, "O nome do exercício não pode ser vazio.").optional(),
+  categoryId: z.string().uuid("Selecione uma categoria válida.").optional(),
+  workoutPlanId: z.string().uuid("Selecione um plano válido.").optional(),
 });
 
 export const createWorkoutPlanSchema = z.object({
@@ -121,6 +129,7 @@ export const updateSetLogSchema = logSetSchema.partial();
 // ==========================================
 
 export type CreateExerciseDTO = z.infer<typeof createExerciseSchema>;
+export type UpdateExerciseDTO = z.infer<typeof updateExerciseSchema>;
 export type CreateWorkoutPlanDTO = z.infer<typeof createWorkoutPlanSchema>;
 export type UpdateWorkoutPlanDTO = z.infer<typeof updateWorkoutPlanSchema>;
 export type StartSessionDTO = z.infer<typeof startSessionSchema>;

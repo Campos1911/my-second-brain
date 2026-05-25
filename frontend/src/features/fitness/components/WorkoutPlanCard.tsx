@@ -3,11 +3,8 @@
 "use client";
 
 import { useState } from "react";
-import { WorkoutPlan } from "../types";
-import {
-  useDeleteWorkoutPlan,
-  useRemoveExerciseFromPlan,
-} from "../hooks/useFitness";
+import { WorkoutPlan, Exercise } from "../types";
+import { useDeleteWorkoutPlan, useDeleteExercise } from "../hooks/useFitness";
 import {
   Trash2,
   Plus,
@@ -16,9 +13,11 @@ import {
   Play,
   Loader2,
   AlertTriangle,
+  Pencil,
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { AddExerciseModal } from "./AddExerciseModal";
+import { EditExerciseModal } from "./EditExerciseModal";
 
 interface WorkoutPlanCardProps {
   plan: WorkoutPlan;
@@ -33,12 +32,13 @@ export function WorkoutPlanCard({
 }: WorkoutPlanCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   const [isAddExerciseOpen, setIsAddExerciseOpen] = useState(false);
+  const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
   const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
 
   const { mutate: deletePlan, isPending: isDeletingPlan } =
     useDeleteWorkoutPlan();
-  const { mutate: removeExercise, isPending: isRemovingExercise } =
-    useRemoveExerciseFromPlan(plan.id);
+  const { mutate: deleteExercise, isPending: isDeletingExercise } =
+    useDeleteExercise();
 
   const exercises = plan.exercises || [];
 
@@ -133,14 +133,25 @@ export function WorkoutPlanCard({
                       <span className="text-sm text-zinc-300 font-medium">
                         {ex.name}
                       </span>
-                      <button
-                        onClick={() => removeExercise(ex.id)}
-                        disabled={isRemovingExercise}
-                        className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
-                        title="Remover exercício do plano"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
+                      <div className="flex items-center gap-1 shrink-0">
+                        {/* Botão Editar Exercício */}
+                        <button
+                          onClick={() => setExerciseToEdit(ex)}
+                          className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-zinc-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all"
+                          title="Editar detalhes do exercício"
+                        >
+                          <Pencil className="w-3.5 h-3.5" />
+                        </button>
+                        {/* Botão Remover Exercício (Direct Delete) */}
+                        <button
+                          onClick={() => deleteExercise(ex.id)}
+                          disabled={isDeletingExercise}
+                          className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+                          title="Remover exercício definitivamente"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
                     </li>
                   ))}
                 </ul>
@@ -190,6 +201,12 @@ export function WorkoutPlanCard({
         isOpen={isAddExerciseOpen}
         onClose={() => setIsAddExerciseOpen(false)}
         planId={plan.id}
+      />
+
+      <EditExerciseModal
+        isOpen={!!exerciseToEdit}
+        onClose={() => setExerciseToEdit(null)}
+        exercise={exerciseToEdit}
       />
     </div>
   );
