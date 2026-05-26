@@ -7,7 +7,7 @@ export default function Home() {
         </h1>
         <p className="text-muted-foreground max-w-md mx-auto">
           O setup inicial da arquitetura foi concluído. Next.js, Tailwind,
-          Tanstack Query e Dark Mode configurados.
+          Tanstack Query e Dark Mode configurados!
         </p>
       </div>
     </main>
