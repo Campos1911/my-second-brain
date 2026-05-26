@@ -138,7 +138,6 @@ export default function ActiveWorkoutPage() {
         <div className="flex items-center gap-3 min-w-0">
           <button
             type="button"
-            type="button"
             onClick={() => setShowExitConfirm(true)}
             className="p-2 hover:bg-zinc-900 text-zinc-400 hover:text-zinc-100 rounded-xl transition-colors cursor-pointer"
           >
@@ -177,7 +176,6 @@ export default function ActiveWorkoutPage() {
                   setSelectedExerciseId(isSelected ? null : exercise.id)
                 }
                 className="w-full flex items-center justify-between gap-4 cursor-pointer text-left outline-none"
-                className="w-full flex items-center justify-between gap-4 cursor-pointer text-left outline-none"
               >
                 <div className="flex items-center gap-2.5">
                   <div
@@ -193,7 +191,6 @@ export default function ActiveWorkoutPage() {
                   {loggedSets.length}{" "}
                   {loggedSets.length === 1 ? "série" : "séries"}
                 </span>
-              </button>
               </button>
 
               {/* Lista de Séries Já Realizadas */}
@@ -212,8 +209,6 @@ export default function ActiveWorkoutPage() {
                 </div>
               )}
 
-              {/* Painel de Registro Rápido */}
-              <AnimatePresence initial={false}>
               {/* Painel de Registro Rápido */}
               <AnimatePresence initial={false}>
                 {isSelected && (
@@ -330,7 +325,6 @@ export default function ActiveWorkoutPage() {
         <div className="max-w-2xl mx-auto">
           <button
             type="button"
-            type="button"
             onClick={handleFinishWorkout}
             disabled={isFinishing || (session.setLogs || []).length === 0}
             className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-bold py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer"
@@ -378,14 +372,12 @@ export default function ActiveWorkoutPage() {
               <div className="flex gap-2 pt-2">
                 <button
                   type="button"
-                  type="button"
                   onClick={() => setShowExitConfirm(false)}
                   className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold rounded-xl text-zinc-300 cursor-pointer"
                 >
                   Voltar ao Treino
                 </button>
                 <button
-                  type="button"
                   type="button"
                   onClick={() => {
                     setShowExitConfirm(false);
