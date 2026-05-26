@@ -26,7 +26,6 @@ import {
   Minus,
   AlertTriangle,
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
 
 export default function ActiveWorkoutPage() {
   const router = useRouter();
@@ -133,7 +132,7 @@ export default function ActiveWorkoutPage() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-24 px-4 sm:px-0">
-      {/* CORRIGIDO: Removido backdrop-blur-md e usado bg-zinc-950 sólido para poupar o processamento gráfico do mobile */}
+      {/* Cabeçalho Sólido */}
       <div className="flex items-center justify-between gap-4 bg-zinc-950 py-4 border-b border-zinc-900 sticky top-16 z-30">
         <div className="flex items-center gap-3 min-w-0">
           <button
@@ -161,13 +160,13 @@ export default function ActiveWorkoutPage() {
           const isSelected = selectedExerciseId === exercise.id;
 
           return (
-            /* CORRIGIDO: Removido transition-all que conflitava com a renderização interna */
+            /* OTIMIZADO: Uso de cores 100% sólidas (bg-zinc-900) para evitar bugs de transparência na GPU móvel */
             <div
               key={exercise.id}
-              className={`border rounded-2xl p-4 transition-colors duration-200 ${
+              className={`border rounded-2xl p-4 ${
                 isSelected
-                  ? "bg-zinc-900/60 border-purple-500/40"
-                  : "bg-zinc-900/20 border-zinc-800 hover:border-zinc-700/80"
+                  ? "bg-zinc-900 border-purple-500/50"
+                  : "bg-zinc-950 border-zinc-800"
               }`}
             >
               <button
@@ -210,118 +209,108 @@ export default function ActiveWorkoutPage() {
               )}
 
               {/* Painel de Registro Rápido */}
-              <AnimatePresence initial={false}>
-                {isSelected && (
-                  /* CORRIGIDO: Removida a alteração de posição (y: -8), mantendo apenas opacidade. 
-                     Isso remove completamente a necessidade do navegador recalcular e redesenhar as camadas sobrepostas ao rolar. */
-                  <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ duration: 0.15 }}
-                  >
-                    <div className="mt-4 pt-4 border-t border-zinc-800/80 space-y-4">
-                      {/* Seletores Digitais */}
-                      <div className="grid grid-cols-2 gap-4">
-                        {/* Seletor Carga */}
-                        <div className="bg-zinc-950/60 border border-zinc-800/60 p-3 rounded-xl flex flex-col items-center justify-center">
-                          <span className="text-xs text-zinc-500 font-semibold mb-1">
-                            Carga (kg)
-                          </span>
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setWeight((prev) => Math.max(0, prev - 2.5))
-                              }
-                              className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer"
-                            >
-                              <Minus className="w-3.5 h-3.5" />
-                            </button>
-                            <span className="text-lg font-bold text-zinc-200">
-                              {weight}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setWeight((prev) => prev + 2.5)}
-                              className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-
-                        {/* Seletor Repetições */}
-                        <div className="bg-zinc-950/60 border border-zinc-800/60 p-3 rounded-xl flex flex-col items-center justify-center">
-                          <span className="text-xs text-zinc-500 font-semibold mb-1">
-                            Repetições
-                          </span>
-                          <div className="flex items-center gap-3">
-                            <button
-                              type="button"
-                              onClick={() =>
-                                setReps((prev) => Math.max(1, prev - 1))
-                              }
-                              className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer"
-                            >
-                              <Minus className="w-3.5 h-3.5" />
-                            </button>
-                            <span className="text-lg font-bold text-zinc-200">
-                              {reps}
-                            </span>
-                            <button
-                              type="button"
-                              onClick={() => setReps((prev) => prev + 1)}
-                              className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer"
-                            >
-                              <Plus className="w-3.5 h-3.5" />
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-
-                      {/* Botão Falha e Registrar */}
-                      <div className="flex gap-2">
+              {/* OTIMIZADO: Renderização condicional nativa do React sem dependência de hardware acceleration (Framer Motion) */}
+              {isSelected && (
+                <div className="mt-4 pt-4 border-t border-zinc-800 space-y-4">
+                  {/* Seletores Digitais */}
+                  <div className="grid grid-cols-2 gap-4">
+                    {/* Seletor Carga */}
+                    <div className="bg-zinc-950 border border-zinc-850 p-3 rounded-xl flex flex-col items-center justify-center">
+                      <span className="text-xs text-zinc-500 font-semibold mb-1">
+                        Carga (kg)
+                      </span>
+                      <div className="flex items-center gap-3">
                         <button
                           type="button"
-                          onClick={() => setToFailure(!toFailure)}
-                          className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border font-semibold text-sm transition-all cursor-pointer ${
-                            toFailure
-                              ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
-                              : "bg-zinc-950/60 border-zinc-800 text-zinc-500 hover:text-zinc-400"
-                          }`}
+                          onClick={() =>
+                            setWeight((prev) => Math.max(0, prev - 2.5))
+                          }
+                          className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer"
                         >
-                          <Flame className="w-4 h-4 fill-current" />
-                          <span>Falha</span>
+                          <Minus className="w-3.5 h-3.5" />
                         </button>
-
+                        <span className="text-lg font-bold text-zinc-200">
+                          {weight}
+                        </span>
                         <button
                           type="button"
-                          onClick={() => handleLogSetSubmit(exercise.id)}
-                          disabled={isLoggingSet}
-                          className="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-semibold text-sm py-3 rounded-xl transition-all shadow-md shadow-purple-500/10 flex items-center justify-center gap-2 cursor-pointer"
+                          onClick={() => setWeight((prev) => prev + 2.5)}
+                          className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer"
                         >
-                          {isLoggingSet ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <>
-                              <Check className="w-4 h-4" />
-                              <span>Registrar Série</span>
-                            </>
-                          )}
+                          <Plus className="w-3.5 h-3.5" />
                         </button>
                       </div>
                     </div>
-                  </motion.div>
-                )}
-              </AnimatePresence>
+
+                    {/* Seletor Repetições */}
+                    <div className="bg-zinc-950 border border-zinc-850 p-3 rounded-xl flex flex-col items-center justify-center">
+                      <span className="text-xs text-zinc-500 font-semibold mb-1">
+                        Repetições
+                      </span>
+                      <div className="flex items-center gap-3">
+                        <button
+                          type="button"
+                          onClick={() =>
+                            setReps((prev) => Math.max(1, prev - 1))
+                          }
+                          className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer"
+                        >
+                          <Minus className="w-3.5 h-3.5" />
+                        </button>
+                        <span className="text-lg font-bold text-zinc-200">
+                          {reps}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setReps((prev) => prev + 1)}
+                          className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg cursor-pointer"
+                        >
+                          <Plus className="w-3.5 h-3.5" />
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Botão Falha e Registrar */}
+                  <div className="flex gap-2">
+                    <button
+                      type="button"
+                      onClick={() => setToFailure(!toFailure)}
+                      className={`flex items-center justify-center gap-2 px-4 py-3 rounded-xl border font-semibold text-sm transition-all cursor-pointer ${
+                        toFailure
+                          ? "bg-orange-500/20 text-orange-400 border-orange-500/30"
+                          : "bg-zinc-950 border-zinc-800 text-zinc-500 hover:text-zinc-400"
+                      }`}
+                    >
+                      <Flame className="w-4 h-4 fill-current" />
+                      <span>Falha</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => handleLogSetSubmit(exercise.id)}
+                      disabled={isLoggingSet}
+                      className="flex-1 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white font-semibold text-sm py-3 rounded-xl transition-all shadow-md shadow-purple-500/10 flex items-center justify-center gap-2 cursor-pointer"
+                    >
+                      {isLoggingSet ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <>
+                          <Check className="w-4 h-4" />
+                          <span>Registrar Série</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           );
         })}
       </div>
 
       {/* Botão Flutuante de Finalização */}
-      <div className="fixed bottom-0 left-0 right-0 bg-linear-to-t from-zinc-950 via-zinc-950/90 to-transparent p-4 border-t border-zinc-900/40 z-20">
+      <div className="fixed bottom-0 left-0 right-0 bg-zinc-950 p-4 border-t border-zinc-900 z-20">
         <div className="max-w-2xl mx-auto">
           <button
             type="button"
@@ -342,58 +331,48 @@ export default function ActiveWorkoutPage() {
       </div>
 
       {/* Modais de Confirmação de Saída */}
-      <AnimatePresence>
-        {showExitConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-            <motion.div
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              onClick={() => setShowExitConfirm(false)}
-              className="absolute inset-0 bg-black/80 backdrop-blur-sm"
-            />
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              className="relative bg-zinc-900 border border-zinc-800 w-full max-w-sm p-6 rounded-2xl shadow-2xl text-zinc-100 z-50 text-center space-y-4"
-            >
-              <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto">
-                <AlertTriangle className="w-6 h-6" />
-              </div>
-              <div>
-                <h3 className="font-bold text-lg">Sair do Treino?</h3>
-                <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
-                  O cronômetro continuará rodando em segundo plano. Você pode
-                  voltar a esta tela a qualquer momento para continuar
-                  registrando suas séries.
-                </p>
-              </div>
-              <div className="flex gap-2 pt-2">
-                <button
-                  type="button"
-                  onClick={() => setShowExitConfirm(false)}
-                  className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold rounded-xl text-zinc-300 cursor-pointer"
-                >
-                  Voltar ao Treino
-                </button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    setShowExitConfirm(false);
-                    startTransition(() => {
-                      router.push("/fitness");
-                    });
-                  }}
-                  className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-sm font-semibold rounded-xl text-white cursor-pointer"
-                >
-                  Sim, Sair
-                </button>
-              </div>
-            </motion.div>
+      {showExitConfirm && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div
+            onClick={() => setShowExitConfirm(false)}
+            className="absolute inset-0 bg-black/80"
+          />
+          <div className="relative bg-zinc-900 border border-zinc-800 w-full max-w-sm p-6 rounded-2xl shadow-2xl text-zinc-100 z-50 text-center space-y-4">
+            <div className="w-12 h-12 bg-rose-500/10 border border-rose-500/20 text-rose-400 rounded-full flex items-center justify-center mx-auto">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+            <div>
+              <h3 className="font-bold text-lg">Sair do Treino?</h3>
+              <p className="text-xs text-zinc-400 mt-1.5 leading-relaxed">
+                O cronômetro continuará rodando em segundo plano. Você pode
+                voltar a esta tela a qualquer momento para continuar registrando
+                suas séries.
+              </p>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button
+                type="button"
+                onClick={() => setShowExitConfirm(false)}
+                className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold rounded-xl text-zinc-300 cursor-pointer"
+              >
+                Voltar ao Treino
+              </button>
+              <button
+                type="button"
+                onClick={() => {
+                  setShowExitConfirm(false);
+                  startTransition(() => {
+                    router.push("/fitness");
+                  });
+                }}
+                className="flex-1 py-2.5 bg-rose-600 hover:bg-rose-500 text-sm font-semibold rounded-xl text-white cursor-pointer"
+              >
+                Sim, Sair
+              </button>
+            </div>
           </div>
-        )}
-      </AnimatePresence>
+        </div>
+      )}
     </div>
   );
 }
