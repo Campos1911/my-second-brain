@@ -92,6 +92,7 @@ export function SetLogRow({
 
         {isEditing ? (
           <button
+            type="button"
             onClick={handleSave}
             disabled={isMutating}
             className="p-1.5 bg-emerald-600/20 text-emerald-400 border border-emerald-500/30 rounded-lg hover:bg-emerald-600/30 transition-colors"
@@ -105,12 +106,14 @@ export function SetLogRow({
         ) : (
           <>
             <button
+              type="button"
               onClick={() => setIsEditing(true)}
               className="p-1.5 text-zinc-500 hover:text-zinc-200 rounded-lg transition-colors"
             >
               <Edit2 className="w-3.5 h-3.5" />
             </button>
             <button
+              type="button"
               onClick={() => onDelete(setLog.id)}
               disabled={isMutating}
               className="p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors"
