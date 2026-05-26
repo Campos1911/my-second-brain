@@ -86,7 +86,7 @@ export default function ActiveWorkoutPage() {
 
   const exercises = plan.exercises || [];
 
-  // Mapeia logs criados para exibição agrupada por exercício (Garante tipagem estrita de arrays)
+  // Mapeia logs criados para exibição agrupada por exercício
   const logsByExercise = (session.setLogs || []).reduce<
     Record<string, SetLog[]>
   >((acc, log) => {
@@ -113,7 +113,6 @@ export default function ActiveWorkoutPage() {
       },
       {
         onSuccess: () => {
-          // Zera o estado de falha, mantém a carga e as repetições como sugestão rápida para a próxima série
           setToFailure(false);
         },
       },
@@ -134,10 +133,11 @@ export default function ActiveWorkoutPage() {
 
   return (
     <div className="space-y-6 max-w-2xl mx-auto pb-24 px-4 sm:px-0">
-      {/* Header Fixo de Treino */}
-      <div className="flex items-center justify-between gap-4 bg-zinc-950/80 backdrop-blur-md py-4 border-b border-zinc-900 sticky top-14 z-30">
+      {/* CORRIGIDO: Removido backdrop-blur-md e usado bg-zinc-950 sólido para poupar o processamento gráfico do mobile */}
+      <div className="flex items-center justify-between gap-4 bg-zinc-950 py-4 border-b border-zinc-900 sticky top-16 z-30">
         <div className="flex items-center gap-3 min-w-0">
           <button
+            type="button"
             onClick={() => setShowExitConfirm(true)}
             className="p-2 hover:bg-zinc-900 text-zinc-400 hover:text-zinc-100 rounded-xl transition-colors cursor-pointer"
           >
@@ -161,19 +161,21 @@ export default function ActiveWorkoutPage() {
           const isSelected = selectedExerciseId === exercise.id;
 
           return (
+            /* CORRIGIDO: Removido transition-all que conflitava com a renderização interna */
             <div
               key={exercise.id}
-              className={`border rounded-2xl p-4 transition-all ${
+              className={`border rounded-2xl p-4 transition-colors duration-200 ${
                 isSelected
                   ? "bg-zinc-900/60 border-purple-500/40"
                   : "bg-zinc-900/20 border-zinc-800 hover:border-zinc-700/80"
               }`}
             >
-              <div
+              <button
+                type="button"
                 onClick={() =>
                   setSelectedExerciseId(isSelected ? null : exercise.id)
                 }
-                className="flex items-center justify-between gap-4 cursor-pointer"
+                className="w-full flex items-center justify-between gap-4 cursor-pointer text-left outline-none"
               >
                 <div className="flex items-center gap-2.5">
                   <div
@@ -189,7 +191,7 @@ export default function ActiveWorkoutPage() {
                   {loggedSets.length}{" "}
                   {loggedSets.length === 1 ? "série" : "séries"}
                 </span>
-              </div>
+              </button>
 
               {/* Lista de Séries Já Realizadas */}
               {loggedSets.length > 0 && (
@@ -207,14 +209,16 @@ export default function ActiveWorkoutPage() {
                 </div>
               )}
 
-              {/* Painel de Registro Rápido (Se selecionado) */}
-              <AnimatePresence>
+              {/* Painel de Registro Rápido */}
+              <AnimatePresence initial={false}>
                 {isSelected && (
+                  /* CORRIGIDO: Removida a alteração de posição (y: -8), mantendo apenas opacidade. 
+                     Isso remove completamente a necessidade do navegador recalcular e redesenhar as camadas sobrepostas ao rolar. */
                   <motion.div
-                    initial={{ height: 0, opacity: 0 }}
-                    animate={{ height: "auto", opacity: 1 }}
-                    exit={{ height: 0, opacity: 0 }}
-                    className="overflow-hidden"
+                    initial={{ opacity: 0 }}
+                    animate={{ opacity: 1 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ duration: 0.15 }}
                   >
                     <div className="mt-4 pt-4 border-t border-zinc-800/80 space-y-4">
                       {/* Seletores Digitais */}
@@ -320,6 +324,7 @@ export default function ActiveWorkoutPage() {
       <div className="fixed bottom-0 left-0 right-0 bg-linear-to-t from-zinc-950 via-zinc-950/90 to-transparent p-4 border-t border-zinc-900/40 z-20">
         <div className="max-w-2xl mx-auto">
           <button
+            type="button"
             onClick={handleFinishWorkout}
             disabled={isFinishing || (session.setLogs || []).length === 0}
             className="w-full bg-emerald-600 hover:bg-emerald-500 disabled:opacity-40 text-white font-bold py-3.5 rounded-2xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-emerald-500/10 cursor-pointer"
@@ -366,12 +371,14 @@ export default function ActiveWorkoutPage() {
               </div>
               <div className="flex gap-2 pt-2">
                 <button
+                  type="button"
                   onClick={() => setShowExitConfirm(false)}
                   className="flex-1 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-sm font-semibold rounded-xl text-zinc-300 cursor-pointer"
                 >
                   Voltar ao Treino
                 </button>
                 <button
+                  type="button"
                   onClick={() => {
                     setShowExitConfirm(false);
                     startTransition(() => {
