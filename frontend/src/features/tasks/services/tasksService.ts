@@ -1,8 +1,10 @@
-import { api } from "@/lib/api";
+import { api } from "@/services/api";
 import { Task, CreateTaskDTO, UpdateTaskDTO, FindTasksQuery } from "../types";
 
 export const tasksService = {
-  async getAll(query?: FindTasksQuery): Promise<{ data: Task[]; total: number; pages: number }> {
+  async getAll(
+    query?: FindTasksQuery,
+  ): Promise<{ data: Task[]; total: number; pages: number }> {
     const response = await api.get("/tasks", { params: query });
     return response.data;
   },
