@@ -1,7 +1,7 @@
 ### Configurações de Variáveis
-@baseUrl = http://localhost:3000
-@authToken = SEU_JWT_TOKEN_AQUI
-@taskId = ID_DA_TAREFA_CRIADA_AQUI
+@baseUrl = http://localhost:3333
+@authToken = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiI3NTgyZDVhMC0zODFmLTRhZTUtOWRmOS02MTc3NmNmNTA1ODYiLCJlbWFpbCI6ImRlbW9Ac2Vjb25kYnJhaW4uY29tIiwiaWF0IjoxNzc5OTE2Nzk4LCJleHAiOjE3ODAwMDMxOTh9.yLzy87j_GNp2dvXJIrDkFG07Qv4B3LI9lxM4d6zaCZQ
+@taskId = 8a8e540c-616c-4408-bd20-75219d3f35e6
 
 ### 1. Autenticação (Login para obter o Token JWT)
 # Execute esta requisição com as credenciais do seu usuário para obter o token de acesso.
@@ -10,8 +10,8 @@ POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
 {
-  "email": "usuario@email.com",
-  "password": "SuaSenhaSegura123"
+  "email": "demo@secondbrain.com",
+  "password": "senhaSegura123"
 }
 
 ###
@@ -38,7 +38,7 @@ Authorization: Bearer {{authToken}}
 ###
 
 ### 4. Listar tarefas com paginação, busca e filtro de prioridade
-GET {{baseUrl}}/tasks?page=1&limit=10&search=NestJS&priority=HIGH
+GET {{baseUrl}}/tasks?page=1&limit=10&search=NestJS&priority=MEDIUM
 Authorization: Bearer {{authToken}}
 
 ###

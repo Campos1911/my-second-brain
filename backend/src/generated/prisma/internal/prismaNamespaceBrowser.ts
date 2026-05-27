@@ -58,7 +58,8 @@ export const ModelName = {
   WorkoutPlan: 'WorkoutPlan',
   Exercise: 'Exercise',
   WorkoutSession: 'WorkoutSession',
-  SetLog: 'SetLog'
+  SetLog: 'SetLog',
+  Task: 'Task'
 } as const
 
 export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -180,6 +181,22 @@ export const SetLogScalarFieldEnum = {
 } as const
 
 export type SetLogScalarFieldEnum = (typeof SetLogScalarFieldEnum)[keyof typeof SetLogScalarFieldEnum]
+
+
+export const TaskScalarFieldEnum = {
+  id: 'id',
+  title: 'title',
+  description: 'description',
+  priority: 'priority',
+  startDate: 'startDate',
+  endDate: 'endDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt',
+  deletedAt: 'deletedAt',
+  userId: 'userId'
+} as const
+
+export type TaskScalarFieldEnum = (typeof TaskScalarFieldEnum)[keyof typeof TaskScalarFieldEnum]
 
 
 export const SortOrder = {

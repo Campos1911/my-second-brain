@@ -57,3 +57,8 @@ export type WorkoutSession = Prisma.WorkoutSessionModel
  * 
  */
 export type SetLog = Prisma.SetLogModel
+/**
+ * Model Task
+ * 
+ */
+export type Task = Prisma.TaskModel
