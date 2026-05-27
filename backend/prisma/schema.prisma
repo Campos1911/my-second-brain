@@ -21,6 +21,7 @@ model User {
   workoutPlans          WorkoutPlan[]
   sessions              WorkoutSession[]
   recurringTransactions RecurringTransaction[] // Relacionamento com as recorrências do usuário
+  tasks                 Task[]
 
   @@index([email, deletedAt])
 }
@@ -159,4 +160,27 @@ model SetLog {
 
   @@index([exerciseId, createdAt, deletedAt])
   @@index([workoutSessionId, deletedAt])
+}
+
+enum TaskPriority {
+  LOW
+  MEDIUM
+  HIGH
+}
+
+model Task {
+  id          String       @id @default(uuid())
+  title       String
+  description String?
+  priority    TaskPriority @default(MEDIUM)
+  startDate   DateTime?
+  endDate     DateTime?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  deletedAt   DateTime? // Soft Delete
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@index([userId, priority, deletedAt])
 }
