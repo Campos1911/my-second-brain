@@ -10,6 +10,7 @@ import { RecurringTransactionsModule } from './recurring-transactions/recurring-
 import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
 import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module'; // Importação adicionada
 import { ExercisesModule } from './exercises/exercises.module';
+import { TasksModule } from './tasks/tasks.module';
 
 @Module({
   imports: [
@@ -26,6 +27,7 @@ import { ExercisesModule } from './exercises/exercises.module';
     WorkoutPlansModule,
     WorkoutSessionsModule,
     ExercisesModule,
+    TasksModule,
   ],
   controllers: [],
   providers: [],
