@@ -13,6 +13,7 @@ import {
   Menu,
   X,
   LogOut,
+  CheckSquare,
 } from "lucide-react";
 
 interface NavigationItem {
@@ -37,6 +38,7 @@ export default function AppLayout({ children }: { children: ReactNode }) {
   const navigation: NavigationItem[] = [
     { name: "Finanças", href: "/dashboard", icon: Wallet, enabled: true },
     { name: "Academia", href: "/fitness", icon: Dumbbell, enabled: true },
+    { name: "Tarefas", href: "/tasks", icon: CheckSquare, enabled: true },
     { name: "Estudos", href: "/studies", icon: GraduationCap, enabled: false },
   ];
 
