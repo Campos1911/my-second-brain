@@ -1,0 +1,66 @@
+### Configurações de Variáveis
+@baseUrl = http://localhost:3000
+@authToken = SEU_JWT_TOKEN_AQUI
+@taskId = ID_DA_TAREFA_CRIADA_AQUI
+
+### 1. Autenticação (Login para obter o Token JWT)
+# Execute esta requisição com as credenciais do seu usuário para obter o token de acesso.
+# Copie o token retornado e substitua no valor da variável @authToken acima.
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "usuario@email.com",
+  "password": "SuaSenhaSegura123"
+}
+
+###
+
+### 2. Criar uma nova tarefa
+POST {{baseUrl}}/tasks
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Estudar NestJS e Prisma",
+  "description": "Finalizar a implementação do módulo de tarefas e testar as rotas",
+  "priority": "HIGH",
+  "startDate": "2024-03-20T09:00:00.000Z",
+  "endDate": "2024-03-25T18:00:00.000Z"
+}
+
+###
+
+### 3. Listar todas as tarefas (Sem filtros)
+GET {{baseUrl}}/tasks
+Authorization: Bearer {{authToken}}
+
+###
+
+### 4. Listar tarefas com paginação, busca e filtro de prioridade
+GET {{baseUrl}}/tasks?page=1&limit=10&search=NestJS&priority=HIGH
+Authorization: Bearer {{authToken}}
+
+###
+
+### 5. Obter detalhes de uma tarefa específica
+GET {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{authToken}}
+
+###
+
+### 6. Atualizar uma tarefa existente
+PATCH {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{authToken}}
+Content-Type: application/json
+
+{
+  "title": "Estudar NestJS, Prisma e Swagger",
+  "priority": "MEDIUM"
+}
+
+###
+
+### 7. Remover logicamente uma tarefa (Soft Delete)
+DELETE {{baseUrl}}/tasks/{{taskId}}
+Authorization: Bearer {{authToken}}
