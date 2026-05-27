@@ -52,6 +52,40 @@ A API conta com arquitetura modular, autenticação via JWT, controle de permiss
 
 ---
 
+## 🧪 Testes Unitários
+
+A aplicação conta com uma suíte de testes unitários desenvolvida com **Jest** e **ts-jest**, focada em isolar e validar as regras de negócio mais complexas do sistema presentes nas classes de serviço.
+
+### Estratégia de Teste
+*   **Isolamento do Banco de Dados:** Mocks estruturados para o `PrismaService`, garantindo que os testes de serviços validem as regras de fluxo sem interações físicas com o banco de dados PostgreSQL.
+*   **Resolução de Caminhos Nativos:** Configuração de mapeamento do Jest adaptada para resolver importações com extensões explícitas `.js` geradas nativamente pelo cliente Prisma sob o modelo `nodenext`.
+
+### Principais Serviços Cobertos e Cenários Validados
+
+*   **Financeiro (`TransactionsService`):**
+    *   Validação de permissão e existência de categorias antes do lançamento físico de transações.
+    *   Cálculo dos agregados de receitas, despesas e saldo líquido no painel resumo (`getSummary`).
+*   **Sessões de Treino (`WorkoutSessionsService`):**
+    *   Controle de sessões ativas concorrentes (prevenção do início de múltiplos treinos paralelos).
+    *   Garantia de pertinência do exercício em relação à ficha selecionada ao salvar cada série.
+    *   Cálculo cronológico de métricas de volume de treino acumulado por exercício (`reps * weight`).
+*   **Recorrência Financeira (`RecurringTransactionsService`):**
+    *   Operação correta do motor agendador do Cron Job.
+    *   Cálculo de incrementos de datas futuras respeitando diferentes frequências (diária, semanal, quinzenal, mensal, anual).
+    *   Verificação do encerramento automático do agendamento ao atingir a data limite estabelecida (`endDate`).
+
+### Como Executar a Suíte de Testes
+
+```bash
+# Executar todos os testes unitários da aplicação
+npm run test
+
+# Executar os testes utilizando o gerenciador Yarn
+yarn test
+```
+
+---
+
 ## 🚀 Como Iniciar o Projeto
 
 ### Pré-requisitos
