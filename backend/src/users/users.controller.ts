@@ -21,6 +21,7 @@ import {
   ApiQuery,
   ApiParam,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('Usuários')
 @Controller('users')
@@ -29,6 +30,8 @@ export class UsersController {
 
   @Post()
   @HttpCode(HttpStatus.CREATED)
+  // Sobrescreve o limitador padrão "default" para no máximo 5 requisições por minuto por IP nesta rota.
+  @Throttle({ default: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'Criar um novo usuário' })
   @ApiResponse({ status: 201, description: 'Usuário cadastrado com sucesso.' })
   @ApiResponse({ status: 400, description: 'Dados de entrada inválidos.' })
