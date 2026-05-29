@@ -15,6 +15,7 @@ import { useQuery } from "@tanstack/react-query";
 import { fitnessService } from "@/features/fitness/services/fitnessService";
 import { WorkoutPlanCard } from "@/features/fitness/components/WorkoutPlanCard";
 import { CreatePlanModal } from "@/features/fitness/components/CreatePlanModal";
+import { CreateExerciseModal } from "@/features/fitness/components/CreateExerciseModal"; // Importado
 import { EditExerciseModal } from "@/features/fitness/components/EditExerciseModal";
 import { SessionDetailModal } from "@/features/fitness/components/SessionDetailModal";
 import { ExerciseProgressChart } from "@/features/fitness/components/ExerciseProgressChart";
@@ -40,28 +41,25 @@ export default function FitnessDashboardPage() {
   const [activeTab, setActiveTab] = useState<
     "PLANS" | "HISTORY" | "ANALYTICS" | "LIBRARY"
   >("PLANS");
+
   const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
+  const [isCreateExerciseOpen, setIsCreateExerciseOpen] = useState(false); // Adicionado
   const [selectedSessionId, setSelectedSessionId] = useState<string | null>(
     null,
   );
   const [selectedExerciseId, setSelectedExerciseId] = useState<string>("");
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
-
-  // Estado para controle de qual ficha está expandida (Apenas uma por vez)
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
   // Estados locais para a Biblioteca (Library)
   const [libraryPage, setLibraryPage] = useState(1);
   const [searchQuery, setSearchQuery] = useState("");
 
-  // Paginação Geral
   const [currentPage, setCurrentPage] = useState(1);
   const LIMIT = 10;
 
-  // Zustand: Estado de treino ativo local
   const { activeSessionId, startSession } = useActiveWorkoutStore();
 
-  // Queries
   const { data: plansData, isLoading: isLoadingPlans } = useWorkoutPlans();
 
   const { data: historyData, isLoading: isLoadingHistory } = useQuery({
@@ -79,7 +77,6 @@ export default function FitnessDashboardPage() {
 
   const { data: exercisesPlanData } = useWorkoutPlans({ page: 1, limit: 100 });
 
-  // Mutations
   const { mutate: startBackendSession, isPending: isStartingSession } =
     useStartWorkoutSession();
   const { mutate: deleteExercise } = useDeleteExercise();
@@ -91,7 +88,6 @@ export default function FitnessDashboardPage() {
   const libraryExercises = libraryData?.data || [];
   const libraryMeta = libraryData?.meta || { total: 0, page: 1, lastPage: 1 };
 
-  // Junta todos os exercícios de todas as fichas para preencher o seletor evolutivo
   const allExercises = (exercisesPlanData?.data || []).flatMap(
     (p) => p.exercises || [],
   );
@@ -116,7 +112,6 @@ export default function FitnessDashboardPage() {
 
   return (
     <div className="space-y-6 sm:space-y-8 px-4 sm:px-0 py-4 sm:py-0 text-zinc-100">
-      {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl sm:text-3xl font-bold">Academia</h1>
@@ -134,7 +129,6 @@ export default function FitnessDashboardPage() {
         </button>
       </div>
 
-      {/* Banner de Sincronização de Sessão Ativa */}
       {activeSessionId && (
         <div className="bg-purple-600/10 border border-purple-500/20 p-4 rounded-2xl flex flex-col sm:flex-row sm:items-center justify-between gap-4 animate-pulse">
           <div className="flex items-center gap-3">
@@ -166,7 +160,6 @@ export default function FitnessDashboardPage() {
         </div>
       )}
 
-      {/* Abas Superiores de Controle */}
       <div className="flex flex-wrap bg-zinc-950/40 border border-zinc-900/60 p-1.5 rounded-2xl gap-1">
         <button
           onClick={() => setActiveTab("PLANS")}
@@ -214,9 +207,7 @@ export default function FitnessDashboardPage() {
         </button>
       </div>
 
-      {/* Conteúdo Mutável */}
       <div className="space-y-4">
-        {/* TAB 1: Minhas Fichas */}
         {activeTab === "PLANS" && (
           <div className="space-y-4">
             {isLoadingPlans ? (
@@ -240,7 +231,6 @@ export default function FitnessDashboardPage() {
                 </p>
               </div>
             ) : (
-              /* ADICIONADO: "items-start" para evitar o alongamento vertical automático do CSS Grid */
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
                 {plans.map((p) => (
                   <WorkoutPlanCard
@@ -257,22 +247,30 @@ export default function FitnessDashboardPage() {
           </div>
         )}
 
-        {/* TAB 2: Biblioteca Unificada de Exercícios */}
         {activeTab === "LIBRARY" && (
           <div className="space-y-5">
-            {/* Filtros de Busca */}
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4.5 h-4.5" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => {
-                  setSearchQuery(e.target.value);
-                  setLibraryPage(1);
-                }}
-                placeholder="Buscar exercício pelo nome..."
-                className="w-full bg-zinc-950/60 border border-zinc-800 pl-10 pr-4 py-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-600/50 text-zinc-100 placeholder:text-zinc-600 transition-all"
-              />
+            {/* Seletor de Busca com Botão Novo Exercício integrado */}
+            <div className="flex gap-2.5">
+              <div className="relative flex-1">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4.5 h-4.5" />
+                <input
+                  type="text"
+                  value={searchQuery}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setLibraryPage(1);
+                  }}
+                  placeholder="Buscar exercício pelo nome..."
+                  className="w-full bg-zinc-950/60 border border-zinc-800 pl-10 pr-4 py-3 rounded-xl text-sm outline-none focus:ring-2 focus:ring-purple-600/50 text-zinc-100 placeholder:text-zinc-600 transition-all"
+                />
+              </div>
+              <button
+                onClick={() => setIsCreateExerciseOpen(true)}
+                className="bg-purple-650 hover:bg-purple-600 text-white px-4 py-3 rounded-xl flex items-center justify-center gap-1.5 font-semibold text-xs sm:text-sm transition-colors cursor-pointer shrink-0"
+              >
+                <Plus className="w-4 h-4" />
+                <span className="hidden sm:inline">Novo Exercício</span>
+              </button>
             </div>
 
             {isLoadingLibrary ? (
@@ -292,13 +290,13 @@ export default function FitnessDashboardPage() {
                 </p>
                 <p className="text-xs text-zinc-500 mt-1">
                   Crie exercícios inserindo-os diretamente em suas fichas de
-                  treino.
+                  treino ou use o botão "+ Novo Exercício" acima.
                 </p>
               </div>
             ) : (
               <div className="space-y-2">
                 {libraryExercises.map((exercise) => {
-                  const isGlobal = !exercise.userId; // Identifica se é global do sistema
+                  const isGlobal = !exercise.userId;
 
                   return (
                     <div
@@ -313,8 +311,6 @@ export default function FitnessDashboardPage() {
                           <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
                             {exercise.category?.name || "Fitness"}
                           </span>
-
-                          {/* Badge de sinalização UX */}
                           <span
                             className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
                               isGlobal
@@ -324,23 +320,10 @@ export default function FitnessDashboardPage() {
                           >
                             {isGlobal ? "Padrão" : "Customizado"}
                           </span>
-
-                          {exercise.workoutPlan && (
-                            <>
-                              <span className="text-zinc-650 text-xs">•</span>
-                              <span className="text-xs text-zinc-500">
-                                Vínculo:{" "}
-                                <strong className="text-zinc-400">
-                                  {exercise.workoutPlan.name}
-                                </strong>
-                              </span>
-                            </>
-                          )}
                         </div>
                       </div>
 
                       <div className="flex items-center gap-1.5 shrink-0">
-                        {/* Botão de Edição condicionado para customizados */}
                         <button
                           onClick={() => setExerciseToEdit(exercise)}
                           disabled={isGlobal}
@@ -357,8 +340,6 @@ export default function FitnessDashboardPage() {
                         >
                           <Pencil className="w-4 h-4" />
                         </button>
-
-                        {/* Botão de Exclusão condicionado para customizados */}
                         <button
                           onClick={() => deleteExercise(exercise.id)}
                           disabled={isGlobal}
@@ -390,7 +371,6 @@ export default function FitnessDashboardPage() {
           </div>
         )}
 
-        {/* TAB 3: Histórico */}
         {activeTab === "HISTORY" && (
           <div className="space-y-4">
             {isLoadingHistory ? (
@@ -450,7 +430,6 @@ export default function FitnessDashboardPage() {
           </div>
         )}
 
-        {/* TAB 4: Evolução de Cargas */}
         {activeTab === "ANALYTICS" && (
           <div className="space-y-4">
             <div className="space-y-1.5">
@@ -462,7 +441,7 @@ export default function FitnessDashboardPage() {
                 onChange={(e) => setSelectedExerciseId(e.target.value)}
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all text-zinc-200"
               >
-                <option value="" disabled className="text-zinc-600">
+                <option value="" disabled className="text-zinc-650">
                   Selecione o exercício...
                 </option>
                 {allExercises.map((ex) => (
@@ -487,7 +466,7 @@ export default function FitnessDashboardPage() {
                 </p>
                 <p className="text-xs text-zinc-500 mt-1">
                   Selecione um exercício da lista acima para plotar o histórico
-                  de forces.
+                  de forças.
                 </p>
               </div>
             )}
@@ -495,10 +474,15 @@ export default function FitnessDashboardPage() {
         )}
       </div>
 
-      {/* Modais Globais do Dashboard */}
+      {/* Modais Globais */}
       <CreatePlanModal
         isOpen={isCreateModalOpen}
         onClose={() => setIsCreateModalOpen(false)}
+      />
+
+      <CreateExerciseModal
+        isOpen={isCreateExerciseOpen}
+        onClose={() => setIsCreateExerciseOpen(false)}
       />
 
       {selectedSessionId && (
@@ -509,7 +493,6 @@ export default function FitnessDashboardPage() {
         />
       )}
 
-      {/* Modal para gerenciar atualizações dos exercícios */}
       <EditExerciseModal
         isOpen={!!exerciseToEdit}
         onClose={() => setExerciseToEdit(null)}
