@@ -141,11 +141,10 @@ model WorkoutPlanExercise {
   exerciseId    String
   exercise      Exercise    @relation(fields: [exerciseId], references: [id])
   createdAt     DateTime    @default(now())
-  deletedAt     DateTime? // Soft Delete para manter integridade do histórico do plano
 
-  @@unique([workoutPlanId, exerciseId]) // Evita associar o mesmo exercício mais de uma vez ao mesmo plano
-  @@index([workoutPlanId, deletedAt])
-  @@index([exerciseId, deletedAt])
+  @@unique([workoutPlanId, exerciseId])
+  @@index([workoutPlanId]) // Índice ajustado
+  @@index([exerciseId]) // Índice ajustado
 }
 
 model WorkoutSession {

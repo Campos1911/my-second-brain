@@ -89,7 +89,6 @@ export class WorkoutSessionsService {
         workoutPlanExercises: {
           some: {
             workoutPlanId: session.workoutPlanId,
-            deletedAt: null,
           },
         },
       },

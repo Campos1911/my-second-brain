@@ -162,8 +162,7 @@ export const WorkoutPlanExerciseScalarFieldEnum = {
   id: 'id',
   workoutPlanId: 'workoutPlanId',
   exerciseId: 'exerciseId',
-  createdAt: 'createdAt',
-  deletedAt: 'deletedAt'
+  createdAt: 'createdAt'
 } as const
 
 export type WorkoutPlanExerciseScalarFieldEnum = (typeof WorkoutPlanExerciseScalarFieldEnum)[keyof typeof WorkoutPlanExerciseScalarFieldEnum]

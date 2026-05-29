@@ -90,7 +90,6 @@ export class ExercisesService {
       whereClause.workoutPlanExercises = {
         some: {
           workoutPlanId,
-          deletedAt: null,
         },
       };
     }

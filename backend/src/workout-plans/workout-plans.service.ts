@@ -15,9 +15,6 @@ export class WorkoutPlansService {
 
   constructor(private readonly prisma: PrismaService) {}
 
-  /**
-   * Valida se todos os exercícios fornecidos existem na biblioteca e estão acessíveis ao usuário.
-   */
   private async validateExercisesAccessibility(
     exerciseIds: string[],
     userId: string,
@@ -26,10 +23,7 @@ export class WorkoutPlansService {
       where: {
         id: { in: exerciseIds },
         deletedAt: null,
-        OR: [
-          { userId },
-          { userId: null }, // Exercícios globais
-        ],
+        OR: [{ userId }, { userId: null }],
       },
     });
 
@@ -40,10 +34,6 @@ export class WorkoutPlansService {
     }
   }
 
-  /**
-   * Helper para formatar o retorno do plano de treino, mantendo a compatibilidade da API
-   * ao extrair os exercícios de dentro da relação da tabela intermediária.
-   */
   private formatWorkoutPlan(plan: any) {
     return {
       id: plan.id,
@@ -52,7 +42,7 @@ export class WorkoutPlansService {
       deletedAt: plan.deletedAt,
       exercises: plan.exercises
         ? plan.exercises.map((wpe: any) => ({
-            associationId: wpe.id, // ID da associação na tabela intermediária
+            associationId: wpe.id,
             id: wpe.exercise.id,
             name: wpe.exercise.name,
             categoryId: wpe.exercise.categoryId,
@@ -80,7 +70,7 @@ export class WorkoutPlansService {
         },
         include: {
           exercises: {
-            where: { deletedAt: null },
+            // Removido where deletedAt daqui, pois a tabela intermediária usa Hard Delete
             include: {
               exercise: {
                 select: { id: true, name: true, categoryId: true },
@@ -115,7 +105,7 @@ export class WorkoutPlansService {
         skip,
         include: {
           exercises: {
-            where: { deletedAt: null },
+            // Removido where deletedAt daqui
             include: {
               exercise: {
                 select: { id: true, name: true, categoryId: true },
@@ -146,7 +136,7 @@ export class WorkoutPlansService {
       },
       include: {
         exercises: {
-          where: { deletedAt: null },
+          // Removido where deletedAt daqui
           include: {
             exercise: {
               include: {
@@ -168,7 +158,6 @@ export class WorkoutPlansService {
   }
 
   async update(id: string, userId: string, dto: UpdateWorkoutPlanDto) {
-    // Garante que o recurso existe e pertence ao usuário autenticado
     await this.findOne(id, userId);
 
     if (dto.exerciseIds) {
@@ -176,9 +165,7 @@ export class WorkoutPlansService {
     }
 
     try {
-      // Sincroniza as associações de forma transacional
       return await this.prisma.$transaction(async (tx) => {
-        // 1. Atualiza o cabeçalho do plano de treino
         await tx.workoutPlan.update({
           where: { id },
           data: {
@@ -186,15 +173,12 @@ export class WorkoutPlansService {
           },
         });
 
-        // 2. Se a lista de IDs de exercícios foi fornecida, atualiza as associações
         if (dto.exerciseIds !== undefined) {
-          // Desvincula de forma lógica (soft-delete) os exercícios atuais
-          await tx.workoutPlanExercise.updateMany({
-            where: { workoutPlanId: id, deletedAt: null },
-            data: { deletedAt: new Date() },
+          // CORRIGIDO: Agora removemos fisicamente os vínculos antigos usando deleteMany
+          await tx.workoutPlanExercise.deleteMany({
+            where: { workoutPlanId: id },
           });
 
-          // Cria as novas vinculações na tabela intermediária
           if (dto.exerciseIds.length > 0) {
             await tx.workoutPlanExercise.createMany({
               data: dto.exerciseIds.map((exerciseId) => ({
@@ -205,12 +189,10 @@ export class WorkoutPlansService {
           }
         }
 
-        // Recupera o plano de treino completo e atualizado
         const updatedPlan = await tx.workoutPlan.findUnique({
           where: { id },
           include: {
             exercises: {
-              where: { deletedAt: null },
               include: {
                 exercise: {
                   select: { id: true, name: true, categoryId: true },
@@ -234,7 +216,6 @@ export class WorkoutPlansService {
     await this.findOne(id, userId);
 
     try {
-      // Soft-delete em cascata: plano de treino e associações da tabela intermediária
       await this.prisma.$transaction(async (tx) => {
         const now = new Date();
 
@@ -243,9 +224,9 @@ export class WorkoutPlansService {
           data: { deletedAt: now },
         });
 
-        await tx.workoutPlanExercise.updateMany({
-          where: { workoutPlanId: id, deletedAt: null },
-          data: { deletedAt: now },
+        // CORRIGIDO: Limpa fisicamente as associações quando o treino é removido
+        await tx.workoutPlanExercise.deleteMany({
+          where: { workoutPlanId: id },
         });
       });
 
