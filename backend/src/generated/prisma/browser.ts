@@ -48,6 +48,11 @@ export type WorkoutPlan = Prisma.WorkoutPlanModel
  */
 export type Exercise = Prisma.ExerciseModel
 /**
+ * Model WorkoutPlanExercise
+ * 
+ */
+export type WorkoutPlanExercise = Prisma.WorkoutPlanExerciseModel
+/**
  * Model WorkoutSession
  * 
  */

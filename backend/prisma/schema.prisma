@@ -20,8 +20,9 @@ model User {
   transactions          Transaction[]
   workoutPlans          WorkoutPlan[]
   sessions              WorkoutSession[]
-  recurringTransactions RecurringTransaction[] // Relacionamento com as recorrências do usuário
+  recurringTransactions RecurringTransaction[]
   tasks                 Task[]
+  exercises             Exercise[] // <-- Adicionado para gerenciar exercícios customizados do usuário
 
   @@index([email, deletedAt])
 }
@@ -97,7 +98,6 @@ model Transaction {
   paymentMethod PaymentMethod @default(DEBIT)
   deletedAt     DateTime? // Soft Delete
 
-  // Rastreabilidade: Indica qual recorrência gerou esta transação física (nulo se for avulsa)
   recurringTransactionId String?
   recurringTransaction   RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id])
 
@@ -111,24 +111,41 @@ model WorkoutPlan {
   user      User      @relation(fields: [userId], references: [id])
   deletedAt DateTime? // Soft Delete
 
-  exercises Exercise[]
+  exercises WorkoutPlanExercise[]
   sessions  WorkoutSession[]
 
   @@index([userId, deletedAt])
 }
 
 model Exercise {
+  id         String   @id @default(uuid())
+  name       String
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  userId String? // <-- Novo campo
+  user   User?   @relation(fields: [userId], references: [id]) // <-- Nova relação
+
+  deletedAt DateTime? // Soft Delete
+
+  setLogs              SetLog[]
+  workoutPlanExercises WorkoutPlanExercise[]
+
+  @@index([userId, categoryId, deletedAt])
+}
+
+model WorkoutPlanExercise {
   id            String      @id @default(uuid())
-  name          String
-  categoryId    String
-  category      Category    @relation(fields: [categoryId], references: [id])
   workoutPlanId String
   workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id])
-  deletedAt     DateTime? // Soft Delete
+  exerciseId    String
+  exercise      Exercise    @relation(fields: [exerciseId], references: [id])
+  createdAt     DateTime    @default(now())
+  deletedAt     DateTime? // Soft Delete para manter integridade do histórico do plano
 
-  setLogs SetLog[]
-
+  @@unique([workoutPlanId, exerciseId]) // Evita associar o mesmo exercício mais de uma vez ao mesmo plano
   @@index([workoutPlanId, deletedAt])
+  @@index([exerciseId, deletedAt])
 }
 
 model WorkoutSession {

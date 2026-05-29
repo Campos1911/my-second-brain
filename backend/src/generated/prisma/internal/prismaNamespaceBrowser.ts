@@ -57,6 +57,7 @@ export const ModelName = {
   Transaction: 'Transaction',
   WorkoutPlan: 'WorkoutPlan',
   Exercise: 'Exercise',
+  WorkoutPlanExercise: 'WorkoutPlanExercise',
   WorkoutSession: 'WorkoutSession',
   SetLog: 'SetLog',
   Task: 'Task'
@@ -150,11 +151,22 @@ export const ExerciseScalarFieldEnum = {
   id: 'id',
   name: 'name',
   categoryId: 'categoryId',
-  workoutPlanId: 'workoutPlanId',
+  userId: 'userId',
   deletedAt: 'deletedAt'
 } as const
 
 export type ExerciseScalarFieldEnum = (typeof ExerciseScalarFieldEnum)[keyof typeof ExerciseScalarFieldEnum]
+
+
+export const WorkoutPlanExerciseScalarFieldEnum = {
+  id: 'id',
+  workoutPlanId: 'workoutPlanId',
+  exerciseId: 'exerciseId',
+  createdAt: 'createdAt',
+  deletedAt: 'deletedAt'
+} as const
+
+export type WorkoutPlanExerciseScalarFieldEnum = (typeof WorkoutPlanExerciseScalarFieldEnum)[keyof typeof WorkoutPlanExerciseScalarFieldEnum]
 
 
 export const WorkoutSessionScalarFieldEnum = {

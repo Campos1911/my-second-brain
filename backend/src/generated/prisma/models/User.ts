@@ -196,6 +196,7 @@ export type UserWhereInput = {
   sessions?: Prisma.WorkoutSessionListRelationFilter
   recurringTransactions?: Prisma.RecurringTransactionListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
+  exercises?: Prisma.ExerciseListRelationFilter
 }
 
 export type UserOrderByWithRelationInput = {
@@ -211,6 +212,7 @@ export type UserOrderByWithRelationInput = {
   sessions?: Prisma.WorkoutSessionOrderByRelationAggregateInput
   recurringTransactions?: Prisma.RecurringTransactionOrderByRelationAggregateInput
   tasks?: Prisma.TaskOrderByRelationAggregateInput
+  exercises?: Prisma.ExerciseOrderByRelationAggregateInput
 }
 
 export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -229,6 +231,7 @@ export type UserWhereUniqueInput = Prisma.AtLeast<{
   sessions?: Prisma.WorkoutSessionListRelationFilter
   recurringTransactions?: Prisma.RecurringTransactionListRelationFilter
   tasks?: Prisma.TaskListRelationFilter
+  exercises?: Prisma.ExerciseListRelationFilter
 }, "id" | "email">
 
 export type UserOrderByWithAggregationInput = {
@@ -268,6 +271,7 @@ export type UserCreateInput = {
   sessions?: Prisma.WorkoutSessionCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateInput = {
@@ -283,6 +287,7 @@ export type UserUncheckedCreateInput = {
   sessions?: Prisma.WorkoutSessionUncheckedCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserUpdateInput = {
@@ -298,6 +303,7 @@ export type UserUpdateInput = {
   sessions?: Prisma.WorkoutSessionUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateInput = {
@@ -313,6 +319,7 @@ export type UserUncheckedUpdateInput = {
   sessions?: Prisma.WorkoutSessionUncheckedUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateManyInput = {
@@ -449,6 +456,22 @@ export type UserUpdateOneRequiredWithoutWorkoutPlansNestedInput = {
   update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutWorkoutPlansInput, Prisma.UserUpdateWithoutWorkoutPlansInput>, Prisma.UserUncheckedUpdateWithoutWorkoutPlansInput>
 }
 
+export type UserCreateNestedOneWithoutExercisesInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExercisesInput, Prisma.UserUncheckedCreateWithoutExercisesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExercisesInput
+  connect?: Prisma.UserWhereUniqueInput
+}
+
+export type UserUpdateOneWithoutExercisesNestedInput = {
+  create?: Prisma.XOR<Prisma.UserCreateWithoutExercisesInput, Prisma.UserUncheckedCreateWithoutExercisesInput>
+  connectOrCreate?: Prisma.UserCreateOrConnectWithoutExercisesInput
+  upsert?: Prisma.UserUpsertWithoutExercisesInput
+  disconnect?: Prisma.UserWhereInput | boolean
+  delete?: Prisma.UserWhereInput | boolean
+  connect?: Prisma.UserWhereUniqueInput
+  update?: Prisma.XOR<Prisma.XOR<Prisma.UserUpdateToOneWithWhereWithoutExercisesInput, Prisma.UserUpdateWithoutExercisesInput>, Prisma.UserUncheckedUpdateWithoutExercisesInput>
+}
+
 export type UserCreateNestedOneWithoutSessionsInput = {
   create?: Prisma.XOR<Prisma.UserCreateWithoutSessionsInput, Prisma.UserUncheckedCreateWithoutSessionsInput>
   connectOrCreate?: Prisma.UserCreateOrConnectWithoutSessionsInput
@@ -489,6 +512,7 @@ export type UserCreateWithoutCategoriesInput = {
   sessions?: Prisma.WorkoutSessionCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutCategoriesInput = {
@@ -503,6 +527,7 @@ export type UserUncheckedCreateWithoutCategoriesInput = {
   sessions?: Prisma.WorkoutSessionUncheckedCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutCategoriesInput = {
@@ -533,6 +558,7 @@ export type UserUpdateWithoutCategoriesInput = {
   sessions?: Prisma.WorkoutSessionUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutCategoriesInput = {
@@ -547,6 +573,7 @@ export type UserUncheckedUpdateWithoutCategoriesInput = {
   sessions?: Prisma.WorkoutSessionUncheckedUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutRecurringTransactionsInput = {
@@ -561,6 +588,7 @@ export type UserCreateWithoutRecurringTransactionsInput = {
   workoutPlans?: Prisma.WorkoutPlanCreateNestedManyWithoutUserInput
   sessions?: Prisma.WorkoutSessionCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutRecurringTransactionsInput = {
@@ -575,6 +603,7 @@ export type UserUncheckedCreateWithoutRecurringTransactionsInput = {
   workoutPlans?: Prisma.WorkoutPlanUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.WorkoutSessionUncheckedCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutRecurringTransactionsInput = {
@@ -605,6 +634,7 @@ export type UserUpdateWithoutRecurringTransactionsInput = {
   workoutPlans?: Prisma.WorkoutPlanUpdateManyWithoutUserNestedInput
   sessions?: Prisma.WorkoutSessionUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutRecurringTransactionsInput = {
@@ -619,6 +649,7 @@ export type UserUncheckedUpdateWithoutRecurringTransactionsInput = {
   workoutPlans?: Prisma.WorkoutPlanUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.WorkoutSessionUncheckedUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTransactionsInput = {
@@ -633,6 +664,7 @@ export type UserCreateWithoutTransactionsInput = {
   sessions?: Prisma.WorkoutSessionCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTransactionsInput = {
@@ -647,6 +679,7 @@ export type UserUncheckedCreateWithoutTransactionsInput = {
   sessions?: Prisma.WorkoutSessionUncheckedCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTransactionsInput = {
@@ -677,6 +710,7 @@ export type UserUpdateWithoutTransactionsInput = {
   sessions?: Prisma.WorkoutSessionUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTransactionsInput = {
@@ -691,6 +725,7 @@ export type UserUncheckedUpdateWithoutTransactionsInput = {
   sessions?: Prisma.WorkoutSessionUncheckedUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutWorkoutPlansInput = {
@@ -705,6 +740,7 @@ export type UserCreateWithoutWorkoutPlansInput = {
   sessions?: Prisma.WorkoutSessionCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutWorkoutPlansInput = {
@@ -719,6 +755,7 @@ export type UserUncheckedCreateWithoutWorkoutPlansInput = {
   sessions?: Prisma.WorkoutSessionUncheckedCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutWorkoutPlansInput = {
@@ -749,6 +786,7 @@ export type UserUpdateWithoutWorkoutPlansInput = {
   sessions?: Prisma.WorkoutSessionUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutWorkoutPlansInput = {
@@ -760,6 +798,83 @@ export type UserUncheckedUpdateWithoutWorkoutPlansInput = {
   deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
   categories?: Prisma.CategoryUncheckedUpdateManyWithoutUserNestedInput
   transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.WorkoutSessionUncheckedUpdateManyWithoutUserNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutUserNestedInput
+  tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUncheckedUpdateManyWithoutUserNestedInput
+}
+
+export type UserCreateWithoutExercisesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  categories?: Prisma.CategoryCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionCreateNestedManyWithoutUserInput
+  workoutPlans?: Prisma.WorkoutPlanCreateNestedManyWithoutUserInput
+  sessions?: Prisma.WorkoutSessionCreateNestedManyWithoutUserInput
+  recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutUserInput
+  tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+}
+
+export type UserUncheckedCreateWithoutExercisesInput = {
+  id?: string
+  email: string
+  passwordHash: string
+  createdAt?: Date | string
+  updatedAt?: Date | string
+  deletedAt?: Date | string | null
+  categories?: Prisma.CategoryUncheckedCreateNestedManyWithoutUserInput
+  transactions?: Prisma.TransactionUncheckedCreateNestedManyWithoutUserInput
+  workoutPlans?: Prisma.WorkoutPlanUncheckedCreateNestedManyWithoutUserInput
+  sessions?: Prisma.WorkoutSessionUncheckedCreateNestedManyWithoutUserInput
+  recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutUserInput
+  tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+}
+
+export type UserCreateOrConnectWithoutExercisesInput = {
+  where: Prisma.UserWhereUniqueInput
+  create: Prisma.XOR<Prisma.UserCreateWithoutExercisesInput, Prisma.UserUncheckedCreateWithoutExercisesInput>
+}
+
+export type UserUpsertWithoutExercisesInput = {
+  update: Prisma.XOR<Prisma.UserUpdateWithoutExercisesInput, Prisma.UserUncheckedUpdateWithoutExercisesInput>
+  create: Prisma.XOR<Prisma.UserCreateWithoutExercisesInput, Prisma.UserUncheckedCreateWithoutExercisesInput>
+  where?: Prisma.UserWhereInput
+}
+
+export type UserUpdateToOneWithWhereWithoutExercisesInput = {
+  where?: Prisma.UserWhereInput
+  data: Prisma.XOR<Prisma.UserUpdateWithoutExercisesInput, Prisma.UserUncheckedUpdateWithoutExercisesInput>
+}
+
+export type UserUpdateWithoutExercisesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  categories?: Prisma.CategoryUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUpdateManyWithoutUserNestedInput
+  workoutPlans?: Prisma.WorkoutPlanUpdateManyWithoutUserNestedInput
+  sessions?: Prisma.WorkoutSessionUpdateManyWithoutUserNestedInput
+  recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutUserNestedInput
+  tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+}
+
+export type UserUncheckedUpdateWithoutExercisesInput = {
+  id?: Prisma.StringFieldUpdateOperationsInput | string
+  email?: Prisma.StringFieldUpdateOperationsInput | string
+  passwordHash?: Prisma.StringFieldUpdateOperationsInput | string
+  createdAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  updatedAt?: Prisma.DateTimeFieldUpdateOperationsInput | Date | string
+  deletedAt?: Prisma.NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+  categories?: Prisma.CategoryUncheckedUpdateManyWithoutUserNestedInput
+  transactions?: Prisma.TransactionUncheckedUpdateManyWithoutUserNestedInput
+  workoutPlans?: Prisma.WorkoutPlanUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.WorkoutSessionUncheckedUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
@@ -777,6 +892,7 @@ export type UserCreateWithoutSessionsInput = {
   workoutPlans?: Prisma.WorkoutPlanCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutSessionsInput = {
@@ -791,6 +907,7 @@ export type UserUncheckedCreateWithoutSessionsInput = {
   workoutPlans?: Prisma.WorkoutPlanUncheckedCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutUserInput
   tasks?: Prisma.TaskUncheckedCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutSessionsInput = {
@@ -821,6 +938,7 @@ export type UserUpdateWithoutSessionsInput = {
   workoutPlans?: Prisma.WorkoutPlanUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutSessionsInput = {
@@ -835,6 +953,7 @@ export type UserUncheckedUpdateWithoutSessionsInput = {
   workoutPlans?: Prisma.WorkoutPlanUncheckedUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutUserNestedInput
   tasks?: Prisma.TaskUncheckedUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUncheckedUpdateManyWithoutUserNestedInput
 }
 
 export type UserCreateWithoutTasksInput = {
@@ -849,6 +968,7 @@ export type UserCreateWithoutTasksInput = {
   workoutPlans?: Prisma.WorkoutPlanCreateNestedManyWithoutUserInput
   sessions?: Prisma.WorkoutSessionCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseCreateNestedManyWithoutUserInput
 }
 
 export type UserUncheckedCreateWithoutTasksInput = {
@@ -863,6 +983,7 @@ export type UserUncheckedCreateWithoutTasksInput = {
   workoutPlans?: Prisma.WorkoutPlanUncheckedCreateNestedManyWithoutUserInput
   sessions?: Prisma.WorkoutSessionUncheckedCreateNestedManyWithoutUserInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedCreateNestedManyWithoutUserInput
+  exercises?: Prisma.ExerciseUncheckedCreateNestedManyWithoutUserInput
 }
 
 export type UserCreateOrConnectWithoutTasksInput = {
@@ -893,6 +1014,7 @@ export type UserUpdateWithoutTasksInput = {
   workoutPlans?: Prisma.WorkoutPlanUpdateManyWithoutUserNestedInput
   sessions?: Prisma.WorkoutSessionUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUpdateManyWithoutUserNestedInput
 }
 
 export type UserUncheckedUpdateWithoutTasksInput = {
@@ -907,6 +1029,7 @@ export type UserUncheckedUpdateWithoutTasksInput = {
   workoutPlans?: Prisma.WorkoutPlanUncheckedUpdateManyWithoutUserNestedInput
   sessions?: Prisma.WorkoutSessionUncheckedUpdateManyWithoutUserNestedInput
   recurringTransactions?: Prisma.RecurringTransactionUncheckedUpdateManyWithoutUserNestedInput
+  exercises?: Prisma.ExerciseUncheckedUpdateManyWithoutUserNestedInput
 }
 
 
@@ -921,6 +1044,7 @@ export type UserCountOutputType = {
   sessions: number
   recurringTransactions: number
   tasks: number
+  exercises: number
 }
 
 export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
@@ -930,6 +1054,7 @@ export type UserCountOutputTypeSelect<ExtArgs extends runtime.Types.Extensions.I
   sessions?: boolean | UserCountOutputTypeCountSessionsArgs
   recurringTransactions?: boolean | UserCountOutputTypeCountRecurringTransactionsArgs
   tasks?: boolean | UserCountOutputTypeCountTasksArgs
+  exercises?: boolean | UserCountOutputTypeCountExercisesArgs
 }
 
 /**
@@ -984,6 +1109,13 @@ export type UserCountOutputTypeCountTasksArgs<ExtArgs extends runtime.Types.Exte
   where?: Prisma.TaskWhereInput
 }
 
+/**
+ * UserCountOutputType without action
+ */
+export type UserCountOutputTypeCountExercisesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  where?: Prisma.ExerciseWhereInput
+}
+
 
 export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = runtime.Types.Extensions.GetSelect<{
   id?: boolean
@@ -998,6 +1130,7 @@ export type UserSelect<ExtArgs extends runtime.Types.Extensions.InternalArgs = r
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   recurringTransactions?: boolean | Prisma.User$recurringTransactionsArgs<ExtArgs>
   tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
+  exercises?: boolean | Prisma.User$exercisesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }, ExtArgs["result"]["user"]>
 
@@ -1036,6 +1169,7 @@ export type UserInclude<ExtArgs extends runtime.Types.Extensions.InternalArgs = 
   sessions?: boolean | Prisma.User$sessionsArgs<ExtArgs>
   recurringTransactions?: boolean | Prisma.User$recurringTransactionsArgs<ExtArgs>
   tasks?: boolean | Prisma.User$tasksArgs<ExtArgs>
+  exercises?: boolean | Prisma.User$exercisesArgs<ExtArgs>
   _count?: boolean | Prisma.UserCountOutputTypeDefaultArgs<ExtArgs>
 }
 export type UserIncludeCreateManyAndReturn<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {}
@@ -1050,6 +1184,7 @@ export type $UserPayload<ExtArgs extends runtime.Types.Extensions.InternalArgs =
     sessions: Prisma.$WorkoutSessionPayload<ExtArgs>[]
     recurringTransactions: Prisma.$RecurringTransactionPayload<ExtArgs>[]
     tasks: Prisma.$TaskPayload<ExtArgs>[]
+    exercises: Prisma.$ExercisePayload<ExtArgs>[]
   }
   scalars: runtime.Types.Extensions.GetPayloadResult<{
     id: string
@@ -1458,6 +1593,7 @@ export interface Prisma__UserClient<T, Null = never, ExtArgs extends runtime.Typ
   sessions<T extends Prisma.User$sessionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$sessionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$WorkoutSessionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   recurringTransactions<T extends Prisma.User$recurringTransactionsArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$recurringTransactionsArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$RecurringTransactionPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   tasks<T extends Prisma.User$tasksArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$tasksArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$TaskPayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
+  exercises<T extends Prisma.User$exercisesArgs<ExtArgs> = {}>(args?: Prisma.Subset<T, Prisma.User$exercisesArgs<ExtArgs>>): Prisma.PrismaPromise<runtime.Types.Result.GetResult<Prisma.$ExercisePayload<ExtArgs>, T, "findMany", GlobalOmitOptions> | Null>
   /**
    * Attaches callbacks for the resolution and/or rejection of the Promise.
    * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2027,6 +2163,30 @@ export type User$tasksArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs
   take?: number
   skip?: number
   distinct?: Prisma.TaskScalarFieldEnum | Prisma.TaskScalarFieldEnum[]
+}
+
+/**
+ * User.exercises
+ */
+export type User$exercisesArgs<ExtArgs extends runtime.Types.Extensions.InternalArgs = runtime.Types.Extensions.DefaultArgs> = {
+  /**
+   * Select specific fields to fetch from the Exercise
+   */
+  select?: Prisma.ExerciseSelect<ExtArgs> | null
+  /**
+   * Omit specific fields from the Exercise
+   */
+  omit?: Prisma.ExerciseOmit<ExtArgs> | null
+  /**
+   * Choose, which related nodes to fetch as well
+   */
+  include?: Prisma.ExerciseInclude<ExtArgs> | null
+  where?: Prisma.ExerciseWhereInput
+  orderBy?: Prisma.ExerciseOrderByWithRelationInput | Prisma.ExerciseOrderByWithRelationInput[]
+  cursor?: Prisma.ExerciseWhereUniqueInput
+  take?: number
+  skip?: number
+  distinct?: Prisma.ExerciseScalarFieldEnum | Prisma.ExerciseScalarFieldEnum[]
 }
 
 /**
