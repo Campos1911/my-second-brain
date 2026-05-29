@@ -297,51 +297,88 @@ export default function FitnessDashboardPage() {
               </div>
             ) : (
               <div className="space-y-2">
-                {libraryExercises.map((exercise) => (
-                  <div
-                    key={exercise.id}
-                    className="flex items-center justify-between p-4 bg-zinc-900/40 border border-zinc-800 rounded-xl group hover:border-purple-500/30 transition-colors"
-                  >
-                    <div className="min-w-0 flex-1 pr-4">
-                      <h4 className="font-bold text-sm text-zinc-200 truncate">
-                        {exercise.name}
-                      </h4>
-                      <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
-                        <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
-                          {exercise.category?.name || "Fitness"}
-                        </span>
-                        {exercise.workoutPlan && (
-                          <>
-                            <span className="text-zinc-600 text-xs">•</span>
-                            <span className="text-xs text-zinc-500">
-                              Vínculo:{" "}
-                              <strong className="text-zinc-400">
-                                {exercise.workoutPlan.name}
-                              </strong>
-                            </span>
-                          </>
-                        )}
+                {libraryExercises.map((exercise) => {
+                  const isGlobal = !exercise.userId; // Identifica se é global do sistema
+
+                  return (
+                    <div
+                      key={exercise.id}
+                      className="flex items-center justify-between p-4 bg-zinc-900/40 border border-zinc-800 rounded-xl group hover:border-purple-500/30 transition-colors"
+                    >
+                      <div className="min-w-0 flex-1 pr-4">
+                        <h4 className="font-bold text-sm text-zinc-200 truncate">
+                          {exercise.name}
+                        </h4>
+                        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mt-1">
+                          <span className="text-[10px] font-semibold uppercase tracking-wider text-purple-400 bg-purple-500/10 border border-purple-500/20 px-2 py-0.5 rounded-md">
+                            {exercise.category?.name || "Fitness"}
+                          </span>
+
+                          {/* Badge de sinalização UX */}
+                          <span
+                            className={`text-[10px] font-semibold uppercase tracking-wider px-2 py-0.5 rounded-md border ${
+                              isGlobal
+                                ? "bg-zinc-800 text-zinc-400 border-zinc-700"
+                                : "bg-emerald-500/10 text-emerald-400 border-emerald-500/20"
+                            }`}
+                          >
+                            {isGlobal ? "Padrão" : "Customizado"}
+                          </span>
+
+                          {exercise.workoutPlan && (
+                            <>
+                              <span className="text-zinc-650 text-xs">•</span>
+                              <span className="text-xs text-zinc-500">
+                                Vínculo:{" "}
+                                <strong className="text-zinc-400">
+                                  {exercise.workoutPlan.name}
+                                </strong>
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-1.5 shrink-0">
+                        {/* Botão de Edição condicionado para customizados */}
+                        <button
+                          onClick={() => setExerciseToEdit(exercise)}
+                          disabled={isGlobal}
+                          className={`p-2 rounded-lg transition-all ${
+                            isGlobal
+                              ? "opacity-25 cursor-not-allowed text-zinc-500"
+                              : "text-zinc-400 hover:text-purple-400 hover:bg-purple-500/10"
+                          }`}
+                          title={
+                            isGlobal
+                              ? "Exercício padrão do sistema (não editável)"
+                              : "Editar Exercício"
+                          }
+                        >
+                          <Pencil className="w-4 h-4" />
+                        </button>
+
+                        {/* Botão de Exclusão condicionado para customizados */}
+                        <button
+                          onClick={() => deleteExercise(exercise.id)}
+                          disabled={isGlobal}
+                          className={`p-2 rounded-lg transition-all ${
+                            isGlobal
+                              ? "opacity-25 cursor-not-allowed text-zinc-500"
+                              : "text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10"
+                          }`}
+                          title={
+                            isGlobal
+                              ? "Exercício padrão do sistema (não removível)"
+                              : "Deletar Exercício"
+                          }
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center gap-1.5 shrink-0">
-                      <button
-                        onClick={() => setExerciseToEdit(exercise)}
-                        className="p-2 text-zinc-400 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all"
-                        title="Editar Exercício"
-                      >
-                        <Pencil className="w-4 h-4" />
-                      </button>
-                      <button
-                        onClick={() => deleteExercise(exercise.id)}
-                        className="p-2 text-zinc-400 hover:text-rose-500 hover:bg-rose-500/10 rounded-lg transition-all"
-                        title="Deletar Exercício"
-                      >
-                        <Trash2 className="w-4 h-4" />
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
 
                 <Pagination
                   currentPage={libraryPage}

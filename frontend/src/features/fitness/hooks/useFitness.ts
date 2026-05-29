@@ -227,3 +227,63 @@ export function useActiveSessionDetail(sessionId: string | null) {
     enabled: !!sessionId,
   });
 }
+
+export function useLinkExerciseToPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      planId,
+      exerciseId,
+      currentExerciseIds,
+    }: {
+      planId: string;
+      exerciseId: string;
+      currentExerciseIds: string[];
+    }) => {
+      // Evita duplicidades na lista de ids
+      const updatedExerciseIds = Array.from(
+        new Set([...currentExerciseIds, exerciseId]),
+      );
+      return fitnessService.updatePlan(planId, {
+        exerciseIds: updatedExerciseIds,
+      });
+    },
+    onSuccess: (updatedPlan) => {
+      queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      queryClient.invalidateQueries({
+        queryKey: ["workout-plans", "detail", updatedPlan.id],
+      });
+    },
+  });
+}
+
+export function useUnlinkExerciseFromPlan() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({
+      planId,
+      exerciseId,
+      currentExerciseIds,
+    }: {
+      planId: string;
+      exerciseId: string;
+      currentExerciseIds: string[];
+    }) => {
+      // Remove o ID do exercício da listagem associada
+      const updatedExerciseIds = currentExerciseIds.filter(
+        (id) => id !== exerciseId,
+      );
+      return fitnessService.updatePlan(planId, {
+        exerciseIds: updatedExerciseIds,
+      });
+    },
+    onSuccess: (updatedPlan) => {
+      queryClient.invalidateQueries({ queryKey: ["workout-plans"] });
+      queryClient.invalidateQueries({
+        queryKey: ["workout-plans", "detail", updatedPlan.id],
+      });
+    },
+  });
+}

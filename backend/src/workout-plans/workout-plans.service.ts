@@ -16,57 +16,81 @@ export class WorkoutPlansService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Valida se a categoria informada existe, pertence ao usuário (ou é global)
-   * e possui o tipo correto (FITNESS).
+   * Valida se todos os exercícios fornecidos existem na biblioteca e estão acessíveis ao usuário.
    */
-  private async validateFitnessCategory(
-    categoryId: string,
+  private async validateExercisesAccessibility(
+    exerciseIds: string[],
     userId: string,
   ): Promise<void> {
-    const category = await this.prisma.category.findFirst({
+    const count = await this.prisma.exercise.count({
       where: {
-        id: categoryId,
-        type: 'FITNESS',
-        OR: [{ userId }, { userId: null }],
+        id: { in: exerciseIds },
         deletedAt: null,
+        OR: [
+          { userId },
+          { userId: null }, // Exercícios globais
+        ],
       },
     });
 
-    if (!category) {
+    if (count !== exerciseIds.length) {
       throw new NotFoundException(
-        `Categoria FITNESS correspondente ao ID ${categoryId} não foi encontrada ou está inativa.`,
+        'Um ou mais exercícios fornecidos não foram encontrados ou estão inacessíveis.',
       );
     }
   }
 
+  /**
+   * Helper para formatar o retorno do plano de treino, mantendo a compatibilidade da API
+   * ao extrair os exercícios de dentro da relação da tabela intermediária.
+   */
+  private formatWorkoutPlan(plan: any) {
+    return {
+      id: plan.id,
+      name: plan.name,
+      userId: plan.userId,
+      deletedAt: plan.deletedAt,
+      exercises: plan.exercises
+        ? plan.exercises.map((wpe: any) => ({
+            associationId: wpe.id, // ID da associação na tabela intermediária
+            id: wpe.exercise.id,
+            name: wpe.exercise.name,
+            categoryId: wpe.exercise.categoryId,
+            category: wpe.exercise.category,
+          }))
+        : [],
+    };
+  }
+
   async create(userId: string, dto: CreateWorkoutPlanDto) {
-    // 1. Validar as categorias de todos os exercícios fornecidos
-    if (dto.exercises && dto.exercises.length > 0) {
-      for (const exercise of dto.exercises) {
-        await this.validateFitnessCategory(exercise.categoryId, userId);
-      }
+    if (dto.exerciseIds && dto.exerciseIds.length > 0) {
+      await this.validateExercisesAccessibility(dto.exerciseIds, userId);
     }
 
     try {
-      // 2. Criar o plano de treino e os exercícios associados de forma transacional
-      return await this.prisma.workoutPlan.create({
+      const plan = await this.prisma.workoutPlan.create({
         data: {
           name: dto.name,
           userId,
           exercises: {
-            create: dto.exercises?.map((ex) => ({
-              name: ex.name,
-              categoryId: ex.categoryId,
+            create: dto.exerciseIds?.map((exerciseId) => ({
+              exerciseId,
             })),
           },
         },
         include: {
           exercises: {
             where: { deletedAt: null },
-            select: { id: true, name: true, categoryId: true },
+            include: {
+              exercise: {
+                select: { id: true, name: true, categoryId: true },
+              },
+            },
           },
         },
       });
+
+      return this.formatWorkoutPlan(plan);
     } catch (error) {
       this.logger.error(error);
       throw new InternalServerErrorException(
@@ -92,7 +116,11 @@ export class WorkoutPlansService {
         include: {
           exercises: {
             where: { deletedAt: null },
-            select: { id: true, name: true, categoryId: true },
+            include: {
+              exercise: {
+                select: { id: true, name: true, categoryId: true },
+              },
+            },
           },
         },
         orderBy: { name: 'asc' },
@@ -100,7 +128,7 @@ export class WorkoutPlansService {
     ]);
 
     return {
-      data,
+      data: data.map((plan) => this.formatWorkoutPlan(plan)),
       meta: {
         total,
         page,
@@ -120,8 +148,12 @@ export class WorkoutPlansService {
         exercises: {
           where: { deletedAt: null },
           include: {
-            category: {
-              select: { id: true, name: true },
+            exercise: {
+              include: {
+                category: {
+                  select: { id: true, name: true },
+                },
+              },
             },
           },
         },
@@ -132,25 +164,63 @@ export class WorkoutPlansService {
       throw new NotFoundException('Plano de treino não encontrado.');
     }
 
-    return plan;
+    return this.formatWorkoutPlan(plan);
   }
 
   async update(id: string, userId: string, dto: UpdateWorkoutPlanDto) {
     // Garante que o recurso existe e pertence ao usuário autenticado
     await this.findOne(id, userId);
 
+    if (dto.exerciseIds) {
+      await this.validateExercisesAccessibility(dto.exerciseIds, userId);
+    }
+
     try {
-      return await this.prisma.workoutPlan.update({
-        where: { id },
-        data: {
-          name: dto.name,
-        },
-        include: {
-          exercises: {
-            where: { deletedAt: null },
-            select: { id: true, name: true },
+      // Sincroniza as associações de forma transacional
+      return await this.prisma.$transaction(async (tx) => {
+        // 1. Atualiza o cabeçalho do plano de treino
+        await tx.workoutPlan.update({
+          where: { id },
+          data: {
+            name: dto.name,
           },
-        },
+        });
+
+        // 2. Se a lista de IDs de exercícios foi fornecida, atualiza as associações
+        if (dto.exerciseIds !== undefined) {
+          // Desvincula de forma lógica (soft-delete) os exercícios atuais
+          await tx.workoutPlanExercise.updateMany({
+            where: { workoutPlanId: id, deletedAt: null },
+            data: { deletedAt: new Date() },
+          });
+
+          // Cria as novas vinculações na tabela intermediária
+          if (dto.exerciseIds.length > 0) {
+            await tx.workoutPlanExercise.createMany({
+              data: dto.exerciseIds.map((exerciseId) => ({
+                workoutPlanId: id,
+                exerciseId,
+              })),
+            });
+          }
+        }
+
+        // Recupera o plano de treino completo e atualizado
+        const updatedPlan = await tx.workoutPlan.findUnique({
+          where: { id },
+          include: {
+            exercises: {
+              where: { deletedAt: null },
+              include: {
+                exercise: {
+                  select: { id: true, name: true, categoryId: true },
+                },
+              },
+            },
+          },
+        });
+
+        return this.formatWorkoutPlan(updatedPlan);
       });
     } catch (error) {
       this.logger.error(error);
@@ -164,7 +234,7 @@ export class WorkoutPlansService {
     await this.findOne(id, userId);
 
     try {
-      // Soft delete em cascata: plano de treino e exercícios vinculados
+      // Soft-delete em cascata: plano de treino e associações da tabela intermediária
       await this.prisma.$transaction(async (tx) => {
         const now = new Date();
 
@@ -173,7 +243,7 @@ export class WorkoutPlansService {
           data: { deletedAt: now },
         });
 
-        await tx.exercise.updateMany({
+        await tx.workoutPlanExercise.updateMany({
           where: { workoutPlanId: id, deletedAt: null },
           data: { deletedAt: now },
         });
@@ -181,7 +251,7 @@ export class WorkoutPlansService {
 
       return {
         message:
-          'Plano de treino e exercícios associados removidos com sucesso.',
+          'Plano de treino e associações de exercícios removidos com sucesso.',
       };
     } catch (error) {
       this.logger.error(error);

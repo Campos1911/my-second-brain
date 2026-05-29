@@ -85,8 +85,13 @@ export class WorkoutSessionsService {
     const exercise = await this.prisma.exercise.findFirst({
       where: {
         id: dto.exerciseId,
-        workoutPlanId: session.workoutPlanId,
         deletedAt: null,
+        workoutPlanExercises: {
+          some: {
+            workoutPlanId: session.workoutPlanId,
+            deletedAt: null,
+          },
+        },
       },
     });
 
@@ -321,20 +326,13 @@ export class WorkoutSessionsService {
     }
   }
 
-  // ==========================================
-  // NOVO MÉTODO: PROGRESSÃO DE CARGAS (MÉTRICAS)
-  // ==========================================
-
   async getExerciseProgress(exerciseId: string, userId: string) {
-    // 1. Validar propriedade do exercício através do plano de treino
+    // CORRIGIDO: Valida a propriedade do exercício de forma simples diretamente pelo userId ou se é global
     const exercise = await this.prisma.exercise.findFirst({
       where: {
         id: exerciseId,
         deletedAt: null,
-        workoutPlan: {
-          userId,
-          deletedAt: null,
-        },
+        OR: [{ userId }, { userId: null }],
       },
     });
 

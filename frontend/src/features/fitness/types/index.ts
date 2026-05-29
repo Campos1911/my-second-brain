@@ -11,7 +11,8 @@ export interface Exercise {
   id: string;
   name: string;
   categoryId: string;
-  workoutPlanId: string;
+  userId: string | null; // null = Exercício Global do Sistema, string = Customizado
+  associationId?: string | null; // ID opcional do vínculo intermediário Many-to-Many
   category?: Partial<Category>;
   workoutPlan?: {
     id: string;
@@ -66,7 +67,7 @@ export interface ExerciseProgressItem {
   reps: number;
   weight: number;
   toFailure: boolean;
-  volume: number; // Volume estimado: reps * weight
+  volume: number;
 }
 
 export interface ExerciseProgressResponse {
@@ -84,26 +85,26 @@ export interface ExerciseProgressResponse {
 export const createExerciseSchema = z.object({
   name: z.string().min(1, "O nome do exercício é obrigatório."),
   categoryId: z.string().uuid("Selecione uma categoria válida."),
-  workoutPlanId: z.string().uuid("Selecione uma ficha de treino válida."),
 });
 
 export const updateExerciseSchema = z.object({
   name: z.string().min(1, "O nome do exercício não pode ser vazio.").optional(),
   categoryId: z.string().uuid("Selecione uma categoria válida.").optional(),
-  workoutPlanId: z.string().uuid("Selecione um plano válido.").optional(),
 });
 
 export const createWorkoutPlanSchema = z.object({
   name: z
     .string()
     .min(2, "O nome do plano de treino deve ter pelo menos 2 caracteres."),
-  exercises: z.array(createExerciseSchema).optional(),
+  exerciseIds: z.array(z.string().uuid()), // Removido .optional() para alinhar 100% com o Form
 });
 
 export const updateWorkoutPlanSchema = z.object({
   name: z
     .string()
-    .min(2, "O nome do plano de treino deve ter pelo menos 2 caracteres."),
+    .min(2, "O nome do plano de treino deve ter pelo menos 2 caracteres.")
+    .optional(), // Tornou-se opcional para permitir atualizações parciais (PATCH)
+  exerciseIds: z.array(z.string().uuid()).optional(),
 });
 
 export const startSessionSchema = z.object({

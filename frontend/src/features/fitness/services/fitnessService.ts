@@ -59,7 +59,7 @@ export const fitnessService = {
   },
 
   // ==========================================
-  // GERENCIAMENTO DIRETO DE EXERCÍCIOS
+  // GERENCIAMENTO DIRETO DE EXERCÍCIOS (BIBLIOTECA)
   // ==========================================
 
   async getExercises(params?: {
@@ -67,7 +67,7 @@ export const fitnessService = {
     limit?: number;
     search?: string;
     categoryId?: string;
-    workoutPlanId?: string;
+    workoutPlanId?: string; // Mantido para carregar exercícios de um plano via query
   }): Promise<PaginatedResponse<Exercise>> {
     const response = await api.get<PaginatedResponse<Exercise>>("/exercises", {
       params,

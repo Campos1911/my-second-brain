@@ -20,6 +20,7 @@ import {
   useFitnessCategories,
   useExercises,
   useWorkoutPlan,
+  useLinkExerciseToPlan,
 } from "../hooks/useFitness";
 import { motion, AnimatePresence } from "framer-motion";
 
@@ -44,10 +45,12 @@ export function AddExerciseModal({
   const { data: plan, isLoading: isLoadingPlan } = useWorkoutPlan(planId);
   const { data: categories = [], isLoading: isLoadingCategories } =
     useFitnessCategories();
+
   const { mutate: createExercise, isPending: isPendingFormSubmit } =
     useCreateExercise();
+  const { mutate: linkExercise, isPending: isLinking } =
+    useLinkExerciseToPlan();
 
-  // Busca exercícios gerais do usuário para a biblioteca
   const { data: exercisesData, isLoading: isLoadingExercises } = useExercises({
     search: searchQuery || undefined,
     limit: 100,
@@ -56,14 +59,16 @@ export function AddExerciseModal({
   const libraryExercises = exercisesData?.data || [];
   const currentPlanExercises = plan?.exercises || [];
 
-  // Mapeamento otimizado dos nomes já adicionados ao plano atual
   const existingNames = useMemo(() => {
     return new Set(
       currentPlanExercises.map((e) => e.name.toLowerCase().trim()),
     );
   }, [currentPlanExercises]);
 
-  // Filtra e remove duplicatas de nomes na exibição da biblioteca global
+  const existingIds = useMemo(() => {
+    return currentPlanExercises.map((e) => e.id);
+  }, [currentPlanExercises]);
+
   const filteredUniqueExercises = useMemo(() => {
     return libraryExercises.reduce<Exercise[]>((acc, current) => {
       const isDuplicate = acc.some(
@@ -77,7 +82,6 @@ export function AddExerciseModal({
     }, []);
   }, [libraryExercises]);
 
-  // Form para criação manual de novos exercícios
   const {
     register,
     handleSubmit,
@@ -85,40 +89,43 @@ export function AddExerciseModal({
     formState: { errors },
   } = useForm<CreateExerciseDTO>({
     resolver: zodResolver(createExerciseSchema),
-    defaultValues: { name: "", categoryId: "", workoutPlanId: planId },
+    defaultValues: { name: "", categoryId: "" }, // Sem workoutPlanId no form
   });
 
   const handleAddFromLibrary = (exercise: Exercise) => {
-    if (!exercise.categoryId) return;
     setAddingExerciseId(exercise.id);
-
-    createExercise(
+    linkExercise(
       {
-        name: exercise.name,
-        categoryId: exercise.categoryId,
-        workoutPlanId: planId,
+        planId,
+        exerciseId: exercise.id,
+        currentExerciseIds: existingIds,
       },
       {
-        onSettled: () => {
-          setAddingExerciseId(null);
-        },
+        onSettled: () => setAddingExerciseId(null),
       },
     );
   };
 
   const handleManualSubmit = (data: CreateExerciseDTO) => {
-    createExercise(
-      {
-        ...data,
-        workoutPlanId: planId,
+    // 1. Cria o exercício na biblioteca global
+    createExercise(data, {
+      onSuccess: (newExercise) => {
+        // 2. Associa o novo exercício criado à ficha
+        linkExercise(
+          {
+            planId,
+            exerciseId: newExercise.id,
+            currentExerciseIds: existingIds,
+          },
+          {
+            onSuccess: () => {
+              reset();
+              onClose();
+            },
+          },
+        );
       },
-      {
-        onSuccess: () => {
-          reset();
-          onClose();
-        },
-      },
-    );
+    });
   };
 
   const handleClose = () => {
@@ -131,7 +138,6 @@ export function AddExerciseModal({
     <AnimatePresence>
       {isOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -140,14 +146,12 @@ export function AddExerciseModal({
             className="absolute inset-0 bg-black/80 backdrop-blur-sm"
           />
 
-          {/* Modal Container */}
           <motion.div
             initial={{ scale: 0.95, opacity: 0 }}
             animate={{ scale: 1, opacity: 1 }}
             exit={{ scale: 0.95, opacity: 0 }}
             className="relative bg-zinc-900 border border-zinc-800 w-full max-w-md rounded-2xl shadow-2xl text-zinc-100 z-50 flex flex-col max-h-[85vh] overflow-hidden"
           >
-            {/* Header */}
             <div className="flex justify-between items-center px-6 py-4 border-b border-zinc-800">
               <h2 className="text-lg font-bold flex items-center gap-2">
                 <Dumbbell className="w-5 h-5 text-purple-500" />
@@ -161,7 +165,6 @@ export function AddExerciseModal({
               </button>
             </div>
 
-            {/* Alternador de Abas */}
             <div className="p-3 bg-zinc-950/40 border-b border-zinc-800/60 flex gap-1">
               <button
                 type="button"
@@ -187,11 +190,9 @@ export function AddExerciseModal({
               </button>
             </div>
 
-            {/* Conteúdo Mutável */}
             <div className="p-6 overflow-y-auto flex-1">
               {activeTab === "LIBRARY" ? (
                 <div className="space-y-4">
-                  {/* Busca */}
                   <div className="relative">
                     <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500 w-4.5 h-4.5" />
                     <input
@@ -199,11 +200,10 @@ export function AddExerciseModal({
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       placeholder="Buscar exercício cadastrado..."
-                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-purple-600/50 text-zinc-100 placeholder:text-zinc-600 transition-all"
+                      className="w-full bg-zinc-950 border border-zinc-800 rounded-xl pl-10 pr-4 py-2.5 text-xs outline-none focus:ring-2 focus:ring-purple-600/50 text-zinc-100 placeholder:text-zinc-650 transition-all"
                     />
                   </div>
 
-                  {/* Listagem */}
                   {isLoadingExercises || isLoadingPlan ? (
                     <div className="space-y-2 py-4">
                       {[1, 2, 3].map((i) => (
@@ -220,6 +220,7 @@ export function AddExerciseModal({
                         Nenhum exercício encontrado
                       </p>
                       <button
+                        type="button"
                         onClick={() => setActiveTab("NEW")}
                         className="text-xs text-purple-400 hover:underline mt-1.5 font-semibold flex items-center justify-center gap-1 mx-auto cursor-pointer"
                       >
@@ -233,7 +234,8 @@ export function AddExerciseModal({
                         const added = existingNames.has(
                           exercise.name.toLowerCase().trim(),
                         );
-                        const isMutating = addingExerciseId === exercise.id;
+                        const isMutating =
+                          addingExerciseId === exercise.id || isLinking;
 
                         return (
                           <div
@@ -266,10 +268,11 @@ export function AddExerciseModal({
                                   type="button"
                                   onClick={() => handleAddFromLibrary(exercise)}
                                   disabled={isMutating}
-                                  className="p-2 bg-zinc-800 hover:bg-purple-600 text-zinc-300 hover:text-white rounded-lg transition-colors cursor-pointer"
+                                  className="p-2 bg-zinc-800 hover:bg-purple-600 text-zinc-300 hover:text-white rounded-lg transition-colors cursor-pointer disabled:opacity-50"
                                   title="Adicionar ao plano"
                                 >
-                                  {isMutating ? (
+                                  {isMutating &&
+                                  addingExerciseId === exercise.id ? (
                                     <Loader2 className="w-3.5 h-3.5 animate-spin" />
                                   ) : (
                                     <Plus className="w-3.5 h-3.5" />
@@ -288,7 +291,6 @@ export function AddExerciseModal({
                   onSubmit={handleSubmit(handleManualSubmit)}
                   className="space-y-4"
                 >
-                  {/* Nome */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-300">
                       Nome do Exercício
@@ -296,7 +298,7 @@ export function AddExerciseModal({
                     <input
                       {...register("name")}
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all placeholder:text-zinc-600 text-zinc-100"
-                      placeholder="Ex: Leg Press 45º, Rosca Martelo..."
+                      placeholder="Ex: Supino Inclinado com Halteres"
                       autoFocus
                     />
                     {errors.name && (
@@ -306,7 +308,6 @@ export function AddExerciseModal({
                     )}
                   </div>
 
-                  {/* Seletor de Categoria FITNESS */}
                   <div className="space-y-1.5">
                     <label className="text-xs font-semibold text-zinc-300">
                       Grupamento Muscular / Categoria
@@ -316,7 +317,7 @@ export function AddExerciseModal({
                       disabled={isLoadingCategories}
                       className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all text-zinc-200"
                     >
-                      <option value="" disabled className="text-zinc-600">
+                      <option value="" disabled className="text-zinc-650">
                         {isLoadingCategories
                           ? "Carregando grupamentos..."
                           : "Selecione o grupamento..."}
@@ -338,13 +339,6 @@ export function AddExerciseModal({
                     )}
                   </div>
 
-                  <input
-                    type="hidden"
-                    {...register("workoutPlanId")}
-                    value={planId}
-                  />
-
-                  {/* Botões do Formulário Manual */}
                   <div className="flex gap-2 justify-end pt-4 border-t border-zinc-800/60">
                     <button
                       type="button"
@@ -355,10 +349,12 @@ export function AddExerciseModal({
                     </button>
                     <button
                       type="submit"
-                      disabled={isPendingFormSubmit || isLoadingCategories}
+                      disabled={
+                        isPendingFormSubmit || isLinking || isLoadingCategories
+                      }
                       className="px-5 py-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white text-xs font-bold rounded-xl transition-colors flex items-center justify-center min-w-24 cursor-pointer"
                     >
-                      {isPendingFormSubmit ? (
+                      {isPendingFormSubmit || isLinking ? (
                         <Loader2 className="w-4 h-4 animate-spin" />
                       ) : (
                         "Criar e Adicionar"
@@ -369,10 +365,10 @@ export function AddExerciseModal({
               )}
             </div>
 
-            {/* Footer Fixo da Aba de Biblioteca */}
             {activeTab === "LIBRARY" && (
               <div className="p-4 border-t border-zinc-800 bg-zinc-950/20 flex justify-end">
                 <button
+                  type="button"
                   onClick={handleClose}
                   className="px-4 py-2 bg-zinc-800 hover:bg-zinc-700/80 text-xs font-bold rounded-xl transition-colors text-zinc-300 cursor-pointer"
                 >

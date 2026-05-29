@@ -4,7 +4,10 @@
 
 import { useState } from "react";
 import { WorkoutPlan, Exercise } from "../types";
-import { useDeleteWorkoutPlan, useDeleteExercise } from "../hooks/useFitness";
+import {
+  useDeleteWorkoutPlan,
+  useUnlinkExerciseFromPlan,
+} from "../hooks/useFitness";
 import {
   Trash2,
   Plus,
@@ -40,8 +43,8 @@ export function WorkoutPlanCard({
 
   const { mutate: deletePlan, isPending: isDeletingPlan } =
     useDeleteWorkoutPlan();
-  const { mutate: deleteExercise, isPending: isDeletingExercise } =
-    useDeleteExercise();
+  const { mutate: unlinkExercise, isPending: isUnlinking } =
+    useUnlinkExerciseFromPlan();
 
   const exercises = plan.exercises || [];
 
@@ -51,10 +54,17 @@ export function WorkoutPlanCard({
     });
   };
 
+  const handleUnlinkExercise = (exerciseId: string) => {
+    unlinkExercise({
+      planId: plan.id,
+      exerciseId,
+      currentExerciseIds: exercises.map((e) => e.id),
+    });
+  };
+
   return (
     <div className="bg-zinc-900/60 border border-zinc-800 rounded-2xl p-4 transition-all hover:border-purple-500/30">
       <div className="flex items-center justify-between gap-4">
-        {/* Info Cabeçalho */}
         <div className="min-w-0 flex-1">
           <h3 className="font-bold text-lg text-zinc-100 truncate">
             {plan.name}
@@ -67,7 +77,6 @@ export function WorkoutPlanCard({
           </p>
         </div>
 
-        {/* Ações */}
         <div className="flex items-center gap-1.5 shrink-0">
           <button
             onClick={() => onStartWorkout(plan.id)}
@@ -94,7 +103,6 @@ export function WorkoutPlanCard({
         </div>
       </div>
 
-      {/* Detalhes Colapsáveis */}
       <AnimatePresence initial={false}>
         {isExpanded && (
           <motion.div
@@ -105,7 +113,6 @@ export function WorkoutPlanCard({
             className="overflow-hidden"
           >
             <div className="mt-4 pt-4 border-t border-zinc-800/80 space-y-4">
-              {/* Cabeçalho da Lista */}
               <div className="flex items-center justify-between">
                 <span className="text-xs font-bold uppercase tracking-wider text-zinc-500">
                   Lista de Exercícios
@@ -119,7 +126,6 @@ export function WorkoutPlanCard({
                 </button>
               </div>
 
-              {/* Lista Física */}
               {exercises.length === 0 ? (
                 <div className="py-6 text-center border border-dashed border-zinc-800 rounded-xl">
                   <p className="text-xs text-zinc-500">
@@ -128,39 +134,48 @@ export function WorkoutPlanCard({
                 </div>
               ) : (
                 <ul className="space-y-1.5">
-                  {exercises.map((ex) => (
-                    <li
-                      key={ex.id}
-                      className="flex items-center justify-between p-2.5 bg-zinc-950/40 rounded-xl border border-zinc-800/50 group"
-                    >
-                      <span className="text-sm text-zinc-300 font-medium">
-                        {ex.name}
-                      </span>
-                      <div className="flex items-center gap-1 shrink-0">
-                        {/* Botão Editar Exercício */}
-                        <button
-                          onClick={() => setExerciseToEdit(ex)}
-                          className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-zinc-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all"
-                          title="Editar detalhes do exercício"
-                        >
-                          <Pencil className="w-3.5 h-3.5" />
-                        </button>
-                        {/* Botão Remover Exercício */}
-                        <button
-                          onClick={() => deleteExercise(ex.id)}
-                          disabled={isDeletingExercise}
-                          className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
-                          title="Remover exercício definitivamente"
-                        >
-                          <Trash2 className="w-3.5 h-3.5" />
-                        </button>
-                      </div>
-                    </li>
-                  ))}
+                  {exercises.map((ex) => {
+                    const isGlobal = !ex.userId;
+                    return (
+                      <li
+                        key={ex.id}
+                        className="flex items-center justify-between p-2.5 bg-zinc-950/40 rounded-xl border border-zinc-800/50 group"
+                      >
+                        <span className="text-sm text-zinc-300 font-medium">
+                          {ex.name}
+                        </span>
+                        <div className="flex items-center gap-1 shrink-0">
+                          {/* Impede a edição de exercícios globais do sistema */}
+                          {!isGlobal && (
+                            <button
+                              onClick={() => setExerciseToEdit(ex)}
+                              className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-zinc-500 hover:text-purple-400 hover:bg-purple-500/10 rounded-lg transition-all"
+                              title="Editar detalhes do exercício"
+                            >
+                              <Pencil className="w-3.5 h-3.5" />
+                            </button>
+                          )}
+
+                          {/* Desassocia o exercício sem deletar o registro da tabela global */}
+                          <button
+                            onClick={() => handleUnlinkExercise(ex.id)}
+                            disabled={isUnlinking}
+                            className="opacity-100 md:opacity-0 md:group-hover:opacity-100 p-1.5 text-zinc-500 hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-all"
+                            title="Remover exercício da ficha"
+                          >
+                            {isUnlinking ? (
+                              <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                            ) : (
+                              <Trash2 className="w-3.5 h-3.5" />
+                            )}
+                          </button>
+                        </div>
+                      </li>
+                    );
+                  })}
                 </ul>
               )}
 
-              {/* Lixeira Física da Ficha Completa */}
               <div className="flex justify-end pt-2 border-t border-zinc-800/40">
                 {deleteConfirmId === plan.id ? (
                   <div className="flex items-center gap-2 bg-rose-500/5 border border-rose-500/20 px-3 py-1.5 rounded-xl">

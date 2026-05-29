@@ -18,29 +18,7 @@ export class ExercisesService {
   constructor(private readonly prisma: PrismaService) {}
 
   /**
-   * Valida se o plano de treino existe e pertence ao usuário autenticado.
-   */
-  private async validateWorkoutPlanOwnership(
-    workoutPlanId: string,
-    userId: string,
-  ): Promise<void> {
-    const plan = await this.prisma.workoutPlan.findFirst({
-      where: {
-        id: workoutPlanId,
-        userId,
-        deletedAt: null,
-      },
-    });
-
-    if (!plan) {
-      throw new NotFoundException(
-        'Plano de treino não encontrado ou indisponível.',
-      );
-    }
-  }
-
-  /**
-   * Valida se a categoria é do tipo FITNESS e se o usuário tem acesso (dona ou global).
+   * Valida se a categoria é do tipo FITNESS e se o usuário tem acesso (dono ou global).
    */
   private async validateFitnessCategory(
     categoryId: string,
@@ -63,7 +41,6 @@ export class ExercisesService {
   }
 
   async create(userId: string, dto: CreateExerciseDto) {
-    await this.validateWorkoutPlanOwnership(dto.workoutPlanId, userId);
     await this.validateFitnessCategory(dto.categoryId, userId);
 
     try {
@@ -71,20 +48,19 @@ export class ExercisesService {
         data: {
           name: dto.name,
           categoryId: dto.categoryId,
-          workoutPlanId: dto.workoutPlanId,
+          userId, // Salva o exercício na biblioteca privada do usuário
         },
         include: {
           category: {
-            select: { id: true, name: true },
-          },
-          workoutPlan: {
             select: { id: true, name: true },
           },
         },
       });
     } catch (error) {
       this.logger.error(error);
-      throw new InternalServerErrorException('Erro ao criar o exercício.');
+      throw new InternalServerErrorException(
+        'Erro ao criar o exercício na biblioteca.',
+      );
     }
   }
 
@@ -92,13 +68,10 @@ export class ExercisesService {
     const { page = 1, limit = 20, search, categoryId, workoutPlanId } = query;
     const skip = (page - 1) * limit;
 
-    // Garante que o usuário só liste exercícios de planos de treino que pertencem a ele
+    // Retorna exercícios criados pelo próprio usuário OU globais (onde userId é nulo)
     const whereClause: Prisma.ExerciseWhereInput = {
       deletedAt: null,
-      workoutPlan: {
-        userId,
-        deletedAt: null,
-      },
+      OR: [{ userId }, { userId: null }],
     };
 
     if (search) {
@@ -112,8 +85,14 @@ export class ExercisesService {
       whereClause.categoryId = categoryId;
     }
 
+    // Se um plano de treino específico foi requisitado, filtramos através do relacionamento Many-to-Many
     if (workoutPlanId) {
-      whereClause.workoutPlanId = workoutPlanId;
+      whereClause.workoutPlanExercises = {
+        some: {
+          workoutPlanId,
+          deletedAt: null,
+        },
+      };
     }
 
     try {
@@ -125,9 +104,6 @@ export class ExercisesService {
           skip,
           include: {
             category: {
-              select: { id: true, name: true },
-            },
-            workoutPlan: {
               select: { id: true, name: true },
             },
           },
@@ -154,16 +130,10 @@ export class ExercisesService {
       where: {
         id,
         deletedAt: null,
-        workoutPlan: {
-          userId,
-          deletedAt: null,
-        },
+        OR: [{ userId }, { userId: null }],
       },
       include: {
         category: {
-          select: { id: true, name: true },
-        },
-        workoutPlan: {
           select: { id: true, name: true },
         },
       },
@@ -177,11 +147,14 @@ export class ExercisesService {
   }
 
   async update(id: string, userId: string, dto: UpdateExerciseDto) {
-    // Valida existência e propriedade do exercício antes de atualizar
-    await this.findOne(id, userId);
+    // Valida a existência do exercício
+    const exercise = await this.findOne(id, userId);
 
-    if (dto.workoutPlanId) {
-      await this.validateWorkoutPlanOwnership(dto.workoutPlanId, userId);
+    // Impede a edição de exercícios padrão globais do sistema
+    if (!exercise.userId) {
+      throw new ForbiddenException(
+        'Você não tem permissão para alterar exercícios padrões do sistema.',
+      );
     }
 
     if (dto.categoryId) {
@@ -194,13 +167,9 @@ export class ExercisesService {
         data: {
           name: dto.name,
           categoryId: dto.categoryId,
-          workoutPlanId: dto.workoutPlanId,
         },
         include: {
           category: {
-            select: { id: true, name: true },
-          },
-          workoutPlan: {
             select: { id: true, name: true },
           },
         },
@@ -212,7 +181,15 @@ export class ExercisesService {
   }
 
   async remove(id: string, userId: string) {
-    await this.findOne(id, userId);
+    // Valida existência
+    const exercise = await this.findOne(id, userId);
+
+    // Impede a remoção de exercícios padrões do sistema
+    if (!exercise.userId) {
+      throw new ForbiddenException(
+        'Você não tem permissão para remover exercícios padrões do sistema.',
+      );
+    }
 
     try {
       await this.prisma.exercise.update({

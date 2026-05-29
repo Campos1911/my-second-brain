@@ -7,11 +7,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Loader2, Pencil } from "lucide-react";
 import { updateExerciseSchema, UpdateExerciseDTO, Exercise } from "../types";
-import {
-  useUpdateExercise,
-  useFitnessCategories,
-  useWorkoutPlans,
-} from "../hooks/useFitness";
+import { useUpdateExercise, useFitnessCategories } from "../hooks/useFitness";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface EditExerciseModalProps {
@@ -28,12 +24,6 @@ export function EditExerciseModal({
   const { mutate: updateExercise, isPending } = useUpdateExercise();
   const { data: categories = [], isLoading: isLoadingCategories } =
     useFitnessCategories();
-  const { data: plansData, isLoading: isLoadingPlans } = useWorkoutPlans({
-    page: 1,
-    limit: 100,
-  });
-
-  const plans = plansData?.data || [];
 
   const {
     register,
@@ -44,13 +34,11 @@ export function EditExerciseModal({
     resolver: zodResolver(updateExerciseSchema),
   });
 
-  // Alimenta os campos quando um exercício válido é selecionado
   useEffect(() => {
     if (exercise) {
       reset({
         name: exercise.name,
         categoryId: exercise.categoryId,
-        workoutPlanId: exercise.workoutPlanId,
       });
     }
   }, [exercise, reset]);
@@ -107,7 +95,7 @@ export function EditExerciseModal({
                 </label>
                 <input
                   {...register("name")}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all placeholder:text-zinc-600 text-zinc-100"
+                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all placeholder:text-zinc-650 text-zinc-100"
                   placeholder="Ex: Supino Inclinado"
                 />
                 {errors.name && (
@@ -117,7 +105,7 @@ export function EditExerciseModal({
                 )}
               </div>
 
-              {/* Seletor de Categoria FITNESS */}
+              {/* Seletor de Grupamento Muscular */}
               <div className="space-y-1.5">
                 <label className="text-sm font-semibold text-zinc-300">
                   Grupamento / Categoria
@@ -140,33 +128,6 @@ export function EditExerciseModal({
                 {errors.categoryId && (
                   <span className="text-rose-500 text-xs font-medium">
                     {errors.categoryId.message}
-                  </span>
-                )}
-              </div>
-
-              {/* Seletor para Mover o Exercício para outro Plano */}
-              <div className="space-y-1.5">
-                <label className="text-sm font-semibold text-zinc-300">
-                  Ficha / Plano de Treino
-                </label>
-                <select
-                  {...register("workoutPlanId")}
-                  disabled={isLoadingPlans}
-                  className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all text-zinc-200"
-                >
-                  {plans.map((p) => (
-                    <option
-                      key={p.id}
-                      value={p.id}
-                      className="bg-zinc-900 text-zinc-100"
-                    >
-                      {p.name}
-                    </option>
-                  ))}
-                </select>
-                {errors.workoutPlanId && (
-                  <span className="text-rose-500 text-xs font-medium">
-                    {errors.workoutPlanId.message}
                   </span>
                 )}
               </div>

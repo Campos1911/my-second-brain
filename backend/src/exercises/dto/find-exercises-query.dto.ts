@@ -23,7 +23,7 @@ export class FindExercisesQueryDto {
   limit?: number = 20;
 
   /**
-   * Filtro de busca textual (busca parcial case-insensitive no nome do exercício).
+   * Filtro de busca parcial case-insensitive no nome do exercício.
    * @example "Supino"
    */
   @IsOptional()
@@ -39,7 +39,7 @@ export class FindExercisesQueryDto {
   categoryId?: string;
 
   /**
-   * Filtro pelo ID de um plano de treino específico.
+   * Filtro pelo ID de um plano de treino associado (busca via relacionamento Many-to-Many).
    * @example "b9d01ce7-8e2d-5c6c-91ef-5f51cc9cf563"
    */
   @IsOptional()
