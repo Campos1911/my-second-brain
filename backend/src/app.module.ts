@@ -13,11 +13,13 @@ import { WorkoutPlansModule } from './workout-plans/workout-plans.module';
 import { WorkoutSessionsModule } from './workout-sessions/workout-sessions.module';
 import { ExercisesModule } from './exercises/exercises.module';
 import { TasksModule } from './tasks/tasks.module';
+import { validate } from './common/config/env.validation';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+      validate,
     }),
     ScheduleModule.forRoot(),
     // Limitação de taxa de requisições global: Padrão de 60 requisições a cada 1 minuto (60.000 ms) por IP.
