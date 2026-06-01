@@ -1,14 +1,14 @@
 # Second Brain Hub
 
-O **Second Brain Hub** é um ecossistema integrado de produtividade pessoal estruturado em torno de dois domínios principais: **Gestão Financeira** (com lançamentos manuais, automações recorrentes e consolidação de saldos) e **Planejamento Fitness** (com controle de fichas de treino, cronômetro de sessões em tempo real e análise de progressão de carga via gráficos analíticos).
+O **Second Brain Hub** é um ecossistema integrado para organização pessoal estruturado em torno de três domínios principais: **Gestão Financeira** (com lançamentos manuais, automações recorrentes e consolidação de saldos), **Planejamento Fitness** (com controle de fichas de treino, cronômetro de sessões em tempo real, catálogo de exercícios e análise de evolução por gráficos) e **Gestão de Tarefas** (com controle de prioridades, prazos e busca integrada).
 
-O projeto adota uma arquitetura desacoplada, utilizando uma API RESTful modularizada no back-end e um cliente SPA moderno e responsivo no front-end.
+O projeto adota uma arquitetura desacoplada, utilizando uma API RESTful modularizada no back-end e um cliente SPA responsivo no front-end.
 
 ---
 
 ## 🏗️ Arquitetura do Sistema
 
-A imagem abaixo ilustra o fluxo de dados entre o cliente Next.js, a API NestJS, o mecanismo de agendamento de tarefas (Cron Engine) e o banco de dados relacional PostgreSQL:
+O fluxo de dados entre o cliente Next.js, a API NestJS, o mecanismo de agendamento de tarefas (Cron Engine) e o banco de dados relacional PostgreSQL é estruturado da seguinte forma:
 
 ```mermaid
 graph TD
@@ -21,6 +21,7 @@ graph TD
     subgraph Server [Back-End: NestJS]
         API[API REST Controllers]
         Guard[Auth Guard / JWT Strategy]
+        Throttle[Throttler Guard - Rate Limiter]
         Service[Business Logic Services]
         Cron[Cron Engine - Daily Task Scheduler]
     end
@@ -33,7 +34,8 @@ graph TD
     UI -->|Ações do Usuário| RQ
     UI -->|Persistência Local da Sessão| ZS
     RQ -->|HTTP Requests / Bearer Token| API
-    API -->|Validação de Token| Guard
+    API -->|Verificação de Limite de Requisições| Throttle
+    Throttle -->|Validação de Token| Guard
     Guard -->|Dados Validados| Service
     Cron -->|Processamento de Lançamentos Recorrentes| Service
     Service --> Prisma
@@ -45,54 +47,86 @@ graph TD
 ## 🛠️ Tecnologias Utilizadas
 
 ### Back-End (API)
-*   **Framework:** [NestJS](https://nestjs.com/) (v11) - Arquitetura modular baseada em injeção de dependência.
+*   **Framework:** [NestJS](https://nestjs.com/) (v11) - Arquitetura modular baseada em injeção de dependências.
 *   **ORM:** [Prisma](https://www.prisma.io/) (v7) - Interface type-safe com o banco de dados.
 *   **Banco de Dados:** PostgreSQL relacional.
-*   **Autenticação:** Passport.js com criptografia de senhas via `bcrypt` e tokens JWT.
-*   **Validação:** `class-validator` e `class-transformer` para validação de DTOs nas requisições HTTP.
-*   **Agendamento:** `@nestjs/schedule` para execução do motor diário de transações recorrentes.
+*   **Autenticação & Segurança:** Passport.js com criptografia de senhas via `bcrypt`, tokens JWT, e `@nestjs/throttler` para prevenção de abusos de requisições.
+*   **Validação:** `class-validator` e `class-transformer` para validação e tipagem rigorosa de DTOs nas requisições HTTP.
+*   **Agendamento:** `@nestjs/schedule` para o motor diário de geração de transações recorrentes.
 
 ### Front-End (Web)
-*   **Framework:** [Next.js](https://nextjs.org/) (v16.2 Beta/RC / v15) com App Router.
-*   **Estilização:** Tailwind CSS v4 com variáveis nativas no Dark Mode.
-*   **Gerenciamento de Estado de Servidor:** [TanStack React Query v5](https://tanstack.com/query/latest) para controle de cache, sincronização e paginação.
-*   **Gerenciamento de Estado Local:** [Zustand](https://github.com/pmndrs/zustand) com persistência automática (via `localStorage` para a sessão de treino ativa).
+*   **Framework:** [Next.js](https://nextjs.org/) (v16.2) com App Router e React 19.
+*   **Estilização:** Tailwind CSS v4 com variáveis nativas no Dark Mode e suporte a transições via Framer Motion.
+*   **Gerenciamento de Estado de Servidor:** [TanStack React Query v5](https://tanstack.com/query/latest) para controle de cache, paginação e sincronização assíncrona.
+*   **Gerenciamento de Estado Local:** [Zustand](https://github.com/pmndrs/zustand) com persistência automática no `localStorage` para manter o estado da sessão de treino ativa.
 *   **Formulários:** React Hook Form integrado com validação de esquemas via **Zod**.
-*   **Comunicação HTTP:** Axios com interceptores para injeção de tokens JWT e redirecionamento automático em caso de expiração de sessão (HTTP 401).
+*   **Comunicação HTTP:** Axios com interceptores para injeção de tokens JWT e tratamento automático de desautenticação (HTTP 401).
 
 ---
 
 ## 📂 Organização do Repositório
 
-O repositório está organizado de forma clara, separando as responsabilidades de cliente e servidor:
+O repositório está organizado de forma clara, separando as responsabilidades de cliente, servidor e automações:
 
 ```text
+├── .github/                  # Fluxos de Integração Contínua (CI/CD GitHub Actions)
 ├── backend/                  # Código fonte do servidor NestJS
-│   ├── prisma/               # Schema do banco de dados e arquivos de migração
-│   ├── src/                  # Módulos da aplicação (auth, finance, workout-plans, etc.)
+│   ├── prisma/               # Schema do banco de dados, sementes (seeds) e migrações
+│   ├── src/                  # Módulos da aplicação (auth, finance, fitness, tasks, etc.)
 │   └── tsconfig.json         # Configurações do compilador TypeScript
 │
 ├── frontend/                 # Código fonte da aplicação web Next.js
 │   ├── src/
-│   │   ├── app/              # Roteamento baseado em pastas (App Router)
-│   │   ├── components/       # Componentes globais compartilhados
-│   │   ├── features/         # Lógica de negócio segmentada por domínios (auth, finance, fitness)
-│   │   └── lib/              # Funções utilitárias e helpers globais
+│   │   ├── app/              # Estrutura de roteamento (App Router)
+│   │   ├── components/       # Componentes globais reutilizáveis
+│   │   ├── features/         # Lógica de negócio segmentada (auth, finance, fitness, tasks)
+│   │   └── lib/              # Helpers de formatação e utilitários globais
 │   └── tsconfig.json         # Configurações do compilador TypeScript
 ```
 
 ---
 
+## 🚀 Funcionalidades Principais
+
+### 1. Autenticação e Segurança
+*   Fluxo de registro e login com validação de senhas.
+*   **Rate Limiting:** Limitação de chamadas globais (máximo de 60 requisições por minuto por IP) e restrição extra nos endpoints críticos de criação de conta e login (limite de 5 tentativas por minuto) para mitigar ataques de força bruta.
+*   Middleware nativo no Next.js para restrição de acesso a rotas autenticadas.
+
+### 2. Módulo de Tarefas (`src/features/tasks`)
+*   **Organização de Atividades:** Lançamento de tarefas com título, descrição opcional, datas de início e término.
+*   **Controle de Prioridades:** Classificação em níveis `LOW` (Baixa), `MEDIUM` (Média) e `HIGH` (Alta), utilizando seletores customizados na interface de usuário.
+*   **Filtros e Paginação:** Busca textual integrada (case-insensitive) combinada com filtros de prioridade diretamente na URL.
+*   **Validação de Consistência:** Regras no Zod que impedem o agendamento de tarefas onde a data de encerramento seja anterior à data de início.
+
+### 3. Módulo Financeiro (`src/features/finance`)
+*   **Resumo Consolidado:** Dashboard de saldo disponível, total de entradas e saídas calculado de forma dinâmica para o mês de referência selecionado.
+*   **Lançamentos Manuais:** Associação de transações com descrição, valor, data, método de pagamento (débito ou crédito) e categorias.
+*   **Transações Recorrentes:** Agendamento de transações com frequências customizáveis (diária, semanal, quinzenal, mensal, anual) monitoradas pelo motor de tarefas automatizado (Cron) no back-end.
+*   **Gerenciador de Categorias:** Criação e remoção em tempo real de categorias organizadas por tipo (Receita, Despesa e Fitness) com suporte a Soft Delete.
+
+### 4. Módulo Fitness (`src/features/fitness`)
+*   **Fichas de Treino:** Elaboração de fichas de treino com nome e lista flexível de exercícios associados.
+*   **Treino Ativo com Cronômetro:** Início de sessão de treino ativa com persistência do cronômetro local e dados preenchidos mesmo se a página for recarregada.
+*   **Gerenciador Desacoplado de Exercícios:** Biblioteca unificada de exercícios dividida entre exercícios padrões do sistema e personalizados criados pelo usuário.
+*   **Registro de Séries (Set Log):** Lançamento de peso, repetições e indicação de falha muscular de forma rápida por exercício, permitindo alteração ou remoção de séries diretamente na sessão ativa.
+*   **Gráficos de Progressão:** Plotagem dinâmica em formato SVG nativo para análise histórica de evolução de cargas (Carga Máxima e Volume Total) por exercício.
+
+### 5. Integração Contínua (CI/CD)
+*   **GitHub Actions:** Pipeline automatizado configurado no arquivo `.github/workflows/ci.yml` responsável pela validação de novos commits e Pull Requests, garantindo a integridade dos builds do front-end e back-end.
+
+---
+
 ## ⚙️ Decisões de Design e Engenharia
 
-1.  **Separação de Responsabilidades no Front-End (Feature-Based):**
-    Em vez de agrupar todos os componentes em pastas genéricas, o código do front-end é organizado por domínios de negócio (`features/auth`, `features/finance`, `features/fitness`). Cada módulo encapsula seus próprios componentes, hooks de requisição, serviços e tipos, o que reduz o acoplamento e facilita a escalabilidade da base de código.
-2.  **Abordagem Híbrida de Estado (Zustand vs. React Query):**
-    Os estados que dependem do servidor (como listas de transações, histórico de treinos e resumos financeiros) são gerenciados pelo **TanStack React Query**, aproveitando sua engine de cache e invalidação de queries. O **Zustand** é usado estritamente para estados puramente locais da UI, como dados de autenticação e o cronômetro do treino em andamento, persistido para que o progresso não seja perdido se o usuário recarregar o navegador.
-3.  **Motor de Recorrência Baseado em Cron:**
-    No back-end, um Cron Job configurado para rodar diariamente analisa se existem agendamentos financeiros (`RecurringTransaction`) com a data de execução expirada ou igual ao dia corrente. O processamento ocorre dentro de uma transação isolada do banco de dados (`$transaction` do Prisma), gerando o lançamento físico na tabela de transações e recalculando o próximo disparo com base na frequência cadastrada (diária, semanal, mensal, etc.).
-4.  **Tratamento de Fusos Horários locais no Next.js:**
-    Para mitigar problemas clássicos de diferença de fuso horário entre o horário salvo em formato UTC no banco e a conversão automática do JavaScript no navegador, foi criada uma utilidade de normalização (`parseUTCToLocalDate`) que garante que o dia, mês e ano inseridos pelo usuário permaneçam idênticos visualmente, independente da localização do cliente.
+1.  **Modularização por Funcionalidade (Feature-Based):**
+    O front-end e o back-end são divididos por domínios (`auth`, `finance`, `fitness`, `tasks`). Isso isola as regras de negócio de cada contexto, otimizando o tempo de manutenção e a legibilidade do código.
+2.  **Abordagem de Estado Híbrido:**
+    O estado que depende de respostas do servidor é gerenciado pelo **TanStack React Query**, permitindo caching eficiente e invalidação automática apenas sob mudanças de dados. O estado local que requer persistência imediata (como a sessão de treino ativa) é mantido em uma store do **Zustand** com persistência em disco local (`localStorage`).
+3.  **Transações Isoladas para Automações Financeiras:**
+    O processamento diário das transações recorrentes é realizado através do recurso `$transaction` do Prisma no back-end. Caso ocorra qualquer falha na criação de uma transação automática ou na atualização de datas da tabela de recorrências, as alterações são revertidas em lote, preservando a consistência dos dados.
+4.  **Normalização de Fusos Horários:**
+    O utilitário `parseUTCToLocalDate` foi implementado para mitigar disparidades entre datas salvas em UTC no banco de dados e a conversão automática do fuso horário realizada pelos navegadores, exibindo as datas exatamente como informadas pelo usuário.
 
 ---
 
@@ -100,7 +134,7 @@ O repositório está organizado de forma clara, separando as responsabilidades d
 
 ### Pré-requisitos
 *   [Node.js](https://nodejs.org/) (versão 18 ou superior) instalado.
-*   Instância ativa do banco de dados PostgreSQL (pode ser executada localmente ou via container Docker).
+*   Instância ativa do banco de dados PostgreSQL (local ou em container Docker).
 
 ---
 
@@ -124,7 +158,7 @@ O repositório está organizado de forma clara, separando as responsabilidades d
     ```bash
     npx prisma migrate dev
     ```
-5.  *(Opcional / Recomendado)* Rode o script de população de banco (seed) para gerar dados fictícios para testes:
+5.  *(Recomendado)* Popule o banco de dados com o script de sementes (seed) para gerar dados de simulação (como usuário convidado, categorias iniciais e histórico de treinos):
     ```bash
     npx prisma db seed
     ```
@@ -132,21 +166,21 @@ O repositório está organizado de forma clara, separando as responsabilidades d
     ```bash
     npm run start:dev
     ```
-    O servidor estará ativo no endereço `http://localhost:3333`. Você pode consultar a documentação das rotas diretamente em `http://localhost:3333/docs` (Swagger UI).
+    O servidor estará ativo no endereço `http://localhost:3333`. Você pode consultar os endpoints mapeados no Swagger UI através do endereço `http://localhost:3333/docs`.
 
 ---
 
 ### Passo 2: Configurando o Front-End
 
-1.  Em uma nova sessão de terminal, navegue até a pasta do cliente Next.js:
+1.  Navegue até a pasta do cliente Next.js:
     ```bash
-    cd frontend
+    cd ../frontend
     ```
 2.  Instale as dependências do projeto:
     ```bash
     npm install
     ```
-3.  Crie um arquivo `.env.local` na raiz do diretório `frontend` apontando para a URL da API que configuramos no passo anterior:
+3.  Crie um arquivo `.env.local` na raiz do diretório `frontend` apontando para a URL da API:
     ```env
     NEXT_PUBLIC_API_URL="http://localhost:3333"
     ```
@@ -154,11 +188,4 @@ O repositório está organizado de forma clara, separando as responsabilidades d
     ```bash
     npm run dev
     ```
-    Acesse `http://localhost:3000` no seu navegador para utilizar a aplicação.
-
----
-
-## 📅 Roadmap de Desenvolvimento Futuro
-*   [ ] **Módulo de Estudos:** Implementação de um bloco de notas com suporte a Markdown, organização por tags de matérias e flashcards para revisões baseadas em repetição espaçada.
-*   [ ] **Testes de Integração adicionais:** Aumento da cobertura de testes nos serviços de persistência física no back-end.
-*   [ ] **Notificações integradas:** Envio de alertas de vencimento para transações recorrentes via e-mail ou integração com canais de mensagem.
+    Abra `http://localhost:3000` no seu navegador para utilizar a aplicação.
