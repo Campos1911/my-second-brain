@@ -4,11 +4,11 @@ import { ValidationPipe, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { NestExpressApplication } from '@nestjs/platform-express';
+import { AllExceptionsFilter } from './common/filters/all-exceptions.filter'; // Importação adicionada
 
 async function bootstrap() {
   const logger = new Logger('Bootstrap');
 
-  // Utilização do tipo específico para acessar métodos de configuração do Express
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
 
   app.enableCors({
@@ -17,8 +17,10 @@ async function bootstrap() {
     credentials: true,
   });
 
-  // Habilita a confiança nos cabeçalhos de proxy (essencial para capturar o IP real do cliente sob Nginx, Cloudflare, etc.)
   app.set('trust proxy', 1);
+
+  // Ativação global do Filtro de Exceções
+  app.useGlobalFilters(new AllExceptionsFilter());
 
   app.useGlobalPipes(
     new ValidationPipe({
