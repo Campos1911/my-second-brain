@@ -1,0 +1,48 @@
+name: Continuous Integration
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        # Garante que todos os comandos rodem dentro da pasta backend
+        working-directory: backend
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          # Removemos o parâmetro de cache para evitar que o fluxo quebre caso o lockfile não exista
+
+      - name: Install dependencies
+        run: npm install
+        # Usamos 'npm install' em vez de 'npm ci' para maior flexibilidade caso não haja lockfile comitado
+
+      - name: Generate Prisma Client
+        run: npx prisma generate
+
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true # Não tem eslint ainda (permitindo falha temporária para testes)
+
+      - name: Compile project
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          JWT_SECRET: dummy_secret_for_compilation_purposes
+        run: npm run build
+
+      - name: Run unit tests
+        env:
+          DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+          JWT_SECRET: dummy_secret_for_testing_purposes
+        run: npm run test
