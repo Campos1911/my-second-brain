@@ -1,3 +1,5 @@
+// src/features/finance/components/CategoryFilter.tsx
+
 "use client";
 
 import { useCategories } from "../hooks/useFinance";
@@ -13,6 +15,11 @@ export function CategoryFilter({
   onChange,
 }: CategoryFilterProps) {
   const { data: categories = [], isLoading } = useCategories();
+
+  // Filtra para exibir apenas categorias financeiras (INCOME e EXPENSE)
+  const financialCategories = categories.filter(
+    (cat) => cat.type !== "FITNESS",
+  );
 
   const handleToggleCategory = (categoryId: string) => {
     if (selectedCategoryIds.includes(categoryId)) {
@@ -57,7 +64,7 @@ export function CategoryFilter({
       </div>
 
       <div className="flex gap-2 pb-1 overflow-x-auto no-scrollbar -mx-4 px-4 sm:mx-0 sm:px-0">
-        {categories.map((category) => {
+        {financialCategories.map((category) => {
           const isSelected = selectedCategoryIds.includes(category.id);
           return (
             <button
@@ -65,7 +72,6 @@ export function CategoryFilter({
               onClick={() => handleToggleCategory(category.id)}
               className="shrink-0 outline-none"
             >
-              {/* Substituído de <Badge> para uma span estilizada com Tailwind */}
               <span
                 className={`inline-flex items-center rounded-full border px-3 py-1.5 text-xs font-normal transition-all duration-200 select-none ${
                   isSelected
