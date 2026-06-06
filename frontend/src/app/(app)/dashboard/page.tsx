@@ -182,7 +182,6 @@ function FinanceDashboardContent() {
           >
             <Plus className="w-4 h-4 shrink-0" />
             <span className="hidden xs:inline sm:inline">Nova Transação</span>
-            <span className="xs:hidden">Nova</span>
           </button>
         </div>
       </div>
