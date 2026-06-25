@@ -181,7 +181,7 @@ export function TransactionList({
                     isIncome ? "text-emerald-500" : "text-foreground"
                   }`}
                 >
-                  {isIncome ? "+" : "-"} R$ {formatCurrency(tx.amount)}
+                  {isIncome ? "+" : "-"} {formatCurrency(tx.amount)}
                 </span>
 
                 <div className="flex items-center gap-1">
