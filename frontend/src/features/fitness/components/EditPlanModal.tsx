@@ -1,23 +1,19 @@
-// src/features/fitness/components/CreatePlanModal.tsx
+// src/features/fitness/components/EditPlanModal.tsx
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
 import { X, Loader2, Search, Check, Plus, Trash2 } from "lucide-react";
-import {
-  createWorkoutPlanSchema,
-  CreateWorkoutPlanDTO,
-  Exercise,
-} from "../types";
-import { useCreateWorkoutPlan, useExercises } from "../hooks/useFitness";
+import { WorkoutPlan, Exercise, UpdateWorkoutPlanDTO } from "../types";
+import { useUpdateWorkoutPlan, useExercises } from "../hooks/useFitness";
 import { CreateExerciseModal } from "./CreateExerciseModal";
 import { motion, AnimatePresence } from "framer-motion";
 
-interface CreatePlanModalProps {
+interface EditPlanModalProps {
   isOpen: boolean;
   onClose: () => void;
+  plan: WorkoutPlan | null;
 }
 
 interface DraftExerciseItem {
@@ -28,8 +24,8 @@ interface DraftExerciseItem {
   targetMaxReps: number;
 }
 
-export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
-  const { mutate: createPlan, isPending } = useCreateWorkoutPlan();
+export function EditPlanModal({ isOpen, onClose, plan }: EditPlanModalProps) {
+  const { mutate: updatePlan, isPending } = useUpdateWorkoutPlan();
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedExercises, setSelectedExercises] = useState<
     DraftExerciseItem[]
@@ -52,6 +48,21 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
     defaultValues: { name: "" },
   });
 
+  // Alimenta os estados do formulário com base nos dados que vêm da API
+  useEffect(() => {
+    if (plan) {
+      reset({ name: plan.name });
+      const initialExercises = (plan.exercises || []).map((ex) => ({
+        id: ex.id,
+        name: ex.name,
+        targetSets: ex.targetSets || 3,
+        targetMinReps: ex.targetMinReps || 8,
+        targetMaxReps: ex.targetMaxReps || 12,
+      }));
+      setSelectedExercises(initialExercises);
+    }
+  }, [plan, reset]);
+
   const handleToggleExercise = (exercise: Exercise) => {
     setSelectedExercises((prev) => {
       const exists = prev.some((item) => item.id === exercise.id);
@@ -63,7 +74,7 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
           {
             id: exercise.id,
             name: exercise.name,
-            targetSets: 3, // Padrão inicial recomendável
+            targetSets: 3,
             targetMinReps: 8,
             targetMaxReps: 12,
           },
@@ -96,12 +107,13 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
   };
 
   const onSubmit = (data: { name: string }) => {
+    if (!plan) return;
     if (selectedExercises.length === 0) {
-      alert("Selecione e configure pelo menos um exercício para este plano.");
+      alert("A ficha de treino precisa conter ao menos um exercício.");
       return;
     }
 
-    const payload: CreateWorkoutPlanDTO = {
+    const payload: UpdateWorkoutPlanDTO = {
       name: data.name,
       exercises: selectedExercises.map((ex) => ({
         exerciseId: ex.id,
@@ -111,33 +123,26 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
       })),
     };
 
-    createPlan(payload, {
-      onSuccess: () => {
-        reset();
-        setSelectedExercises([]);
-        setSearchQuery("");
-        onClose();
+    updatePlan(
+      { id: plan.id, data: payload },
+      {
+        onSuccess: () => {
+          onClose();
+        },
       },
-    });
-  };
-
-  const handleClose = () => {
-    reset();
-    setSelectedExercises([]);
-    setSearchQuery("");
-    onClose();
+    );
   };
 
   return (
     <>
       <AnimatePresence>
-        {isOpen && (
+        {isOpen && plan && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
             <motion.div
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
-              onClick={handleClose}
+              onClick={onClose}
               className="absolute inset-0 bg-black/80 backdrop-blur-sm"
             />
 
@@ -148,10 +153,10 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
               className="relative bg-zinc-900 border border-zinc-800 w-full max-w-lg p-6 rounded-2xl shadow-2xl text-zinc-100 z-50 flex flex-col max-h-[85vh] overflow-hidden"
             >
               <div className="flex justify-between items-center mb-4 shrink-0">
-                <h2 className="text-xl font-bold">Nova Ficha de Treino</h2>
+                <h2 className="text-xl font-bold">Editar Ficha de Treino</h2>
                 <button
                   type="button"
-                  onClick={handleClose}
+                  onClick={onClose}
                   className="p-1.5 hover:bg-zinc-800 text-zinc-400 hover:text-zinc-200 rounded-lg transition-colors cursor-pointer"
                 >
                   <X className="w-5 h-5" />
@@ -169,9 +174,8 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
                   </label>
                   <input
                     {...register("name", { required: "O nome é obrigatório" })}
-                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all placeholder:text-zinc-650"
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all text-zinc-100"
                     placeholder="Ex: Treino A - Peito & Tríceps"
-                    autoFocus
                   />
                   {errors.name && (
                     <span className="text-rose-500 text-xs font-medium">
@@ -180,11 +184,11 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
                   )}
                 </div>
 
-                {/* Seleção do Catálogo */}
+                {/* Catálogo de Exercícios */}
                 <div className="space-y-2">
                   <div className="flex justify-between items-center">
                     <label className="text-xs font-semibold text-zinc-350">
-                      Vincular Exercícios ({selectedExercises.length})
+                      Adicionar Exercícios ({selectedExercises.length})
                     </label>
                     <button
                       type="button"
@@ -212,10 +216,6 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
                       <div className="p-4 text-center text-xs text-zinc-500 flex items-center justify-center gap-2">
                         <Loader2 className="w-4.5 h-4.5 animate-spin text-purple-500" />
                         Carregando catálogo...
-                      </div>
-                    ) : libraryExercises.length === 0 ? (
-                      <div className="p-6 text-center text-xs text-zinc-500">
-                        Nenhum exercício cadastrado.
                       </div>
                     ) : (
                       libraryExercises.map((exercise) => {
@@ -255,7 +255,7 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
                   </div>
                 </div>
 
-                {/* Exercícios Selecionados e Configuração de Metas */}
+                {/* Metas Ativas da Ficha */}
                 {selectedExercises.length > 0 && (
                   <div className="space-y-3 pt-2">
                     <h4 className="text-xs font-bold uppercase tracking-wider text-purple-400">
@@ -352,7 +352,7 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
                 <div className="flex gap-3 justify-end pt-3 border-t border-zinc-800/50">
                   <button
                     type="button"
-                    onClick={handleClose}
+                    onClick={onClose}
                     className="px-4 py-2.5 bg-zinc-800 hover:bg-zinc-700 text-xs font-semibold rounded-xl cursor-pointer text-zinc-300"
                   >
                     Cancelar
@@ -365,7 +365,7 @@ export function CreatePlanModal({ isOpen, onClose }: CreatePlanModalProps) {
                     {isPending ? (
                       <Loader2 className="w-4 h-4 animate-spin" />
                     ) : (
-                      "Criar Ficha"
+                      "Salvar Alterações"
                     )}
                   </button>
                 </div>

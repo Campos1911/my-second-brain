@@ -242,12 +242,48 @@ async function main() {
   console.log('🔗 Criando vínculos Many-to-Many entre planos e exercícios...');
   await prisma.workoutPlanExercise.createMany({
     data: [
-      { workoutPlanId: planoA.id, exerciseId: exSupino.id },
-      { workoutPlanId: planoA.id, exerciseId: exCrossOver.id },
-      { workoutPlanId: planoA.id, exerciseId: exTricepsPulley.id },
-      { workoutPlanId: planoB.id, exerciseId: exPuxadaAlta.id },
-      { workoutPlanId: planoB.id, exerciseId: exRemadaBaixa.id },
-      { workoutPlanId: planoB.id, exerciseId: exRoscaDireta.id },
+      {
+        workoutPlanId: planoA.id,
+        exerciseId: exSupino.id,
+        targetSets: 4,
+        targetMinReps: 8,
+        targetMaxReps: 12,
+      },
+      {
+        workoutPlanId: planoA.id,
+        exerciseId: exCrossOver.id,
+        targetSets: 3,
+        targetMinReps: 10,
+        targetMaxReps: 12,
+      },
+      {
+        workoutPlanId: planoA.id,
+        exerciseId: exTricepsPulley.id,
+        targetSets: 3,
+        targetMinReps: 12,
+        targetMaxReps: 15,
+      },
+      {
+        workoutPlanId: planoB.id,
+        exerciseId: exPuxadaAlta.id,
+        targetSets: 4,
+        targetMinReps: 8,
+        targetMaxReps: 12,
+      },
+      {
+        workoutPlanId: planoB.id,
+        exerciseId: exRemadaBaixa.id,
+        targetSets: 3,
+        targetMinReps: 10,
+        targetMaxReps: 12,
+      },
+      {
+        workoutPlanId: planoB.id,
+        exerciseId: exRoscaDireta.id,
+        targetSets: 3,
+        targetMinReps: 10,
+        targetMaxReps: 12,
+      },
     ],
   });
 

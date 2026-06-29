@@ -19,6 +19,11 @@ export interface Exercise {
     name: string;
   };
   deletedAt?: string | null;
+
+  // Metas físicas obrigatórias adicionadas pelo backend
+  targetSets?: number;
+  targetMinReps?: number;
+  targetMaxReps?: number;
 }
 
 export interface WorkoutPlan {
@@ -92,19 +97,43 @@ export const updateExerciseSchema = z.object({
   categoryId: z.string().uuid("Selecione uma categoria válida.").optional(),
 });
 
+// Schema interno para validação das metas obrigatórias de cada exercício vinculado
+export const workoutPlanExerciseInputSchema = z
+  .object({
+    exerciseId: z.string().uuid("ID de exercício inválido."),
+    targetSets: z
+      .number()
+      .int()
+      .positive("Séries recomendadas devem ser maiores que zero."),
+    targetMinReps: z
+      .number()
+      .int()
+      .positive("Repetições mínimas devem ser maiores que zero."),
+    targetMaxReps: z
+      .number()
+      .int()
+      .positive("Repetições máximas devem ser maiores que zero."),
+  })
+  .refine((data) => data.targetMaxReps >= data.targetMinReps, {
+    message: "As repetições máximas não podem ser menores que as mínimas.",
+    path: ["targetMaxReps"],
+  });
+
 export const createWorkoutPlanSchema = z.object({
   name: z
     .string()
     .min(2, "O nome do plano de treino deve ter pelo menos 2 caracteres."),
-  exerciseIds: z.array(z.string().uuid()), // Removido .optional() para alinhar 100% com o Form
+  exercises: z
+    .array(workoutPlanExerciseInputSchema)
+    .min(1, "Selecione pelo menos um exercício para a sua ficha."),
 });
 
 export const updateWorkoutPlanSchema = z.object({
   name: z
     .string()
     .min(2, "O nome do plano de treino deve ter pelo menos 2 caracteres.")
-    .optional(), // Tornou-se opcional para permitir atualizações parciais (PATCH)
-  exerciseIds: z.array(z.string().uuid()).optional(),
+    .optional(),
+  exercises: z.array(workoutPlanExerciseInputSchema).optional(),
 });
 
 export const startSessionSchema = z.object({

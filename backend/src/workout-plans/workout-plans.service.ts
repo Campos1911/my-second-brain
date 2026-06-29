@@ -15,25 +15,35 @@ export class WorkoutPlansService {
 
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Valida se os exercícios estão disponíveis e pertencem ao usuário (ou se são globais)
+   */
   private async validateExercisesAccessibility(
-    exerciseIds: string[],
+    exercises: { exerciseId: string }[],
     userId: string,
   ): Promise<void> {
+    const exerciseIds = exercises.map((e) => e.exerciseId);
+    // Elimina IDs duplicados no payload para realizar uma contagem precisa
+    const uniqueExerciseIds = [...new Set(exerciseIds)];
+
     const count = await this.prisma.exercise.count({
       where: {
-        id: { in: exerciseIds },
+        id: { in: uniqueExerciseIds },
         deletedAt: null,
         OR: [{ userId }, { userId: null }],
       },
     });
 
-    if (count !== exerciseIds.length) {
+    if (count !== uniqueExerciseIds.length) {
       throw new NotFoundException(
         'Um ou mais exercícios fornecidos não foram encontrados ou estão inacessíveis.',
       );
     }
   }
 
+  /**
+   * Formata o plano de treino incluindo os alvos estruturados de séries e repetições
+   */
   private formatWorkoutPlan(plan: any) {
     return {
       id: plan.id,
@@ -47,15 +57,16 @@ export class WorkoutPlansService {
             name: wpe.exercise.name,
             categoryId: wpe.exercise.categoryId,
             category: wpe.exercise.category,
+            targetSets: wpe.targetSets,
+            targetMinReps: wpe.targetMinReps,
+            targetMaxReps: wpe.targetMaxReps,
           }))
         : [],
     };
   }
 
   async create(userId: string, dto: CreateWorkoutPlanDto) {
-    if (dto.exerciseIds && dto.exerciseIds.length > 0) {
-      await this.validateExercisesAccessibility(dto.exerciseIds, userId);
-    }
+    await this.validateExercisesAccessibility(dto.exercises, userId);
 
     try {
       const plan = await this.prisma.workoutPlan.create({
@@ -63,14 +74,16 @@ export class WorkoutPlansService {
           name: dto.name,
           userId,
           exercises: {
-            create: dto.exerciseIds?.map((exerciseId) => ({
-              exerciseId,
+            create: dto.exercises.map((item) => ({
+              exerciseId: item.exerciseId,
+              targetSets: item.targetSets,
+              targetMinReps: item.targetMinReps,
+              targetMaxReps: item.targetMaxReps,
             })),
           },
         },
         include: {
           exercises: {
-            // Removido where deletedAt daqui, pois a tabela intermediária usa Hard Delete
             include: {
               exercise: {
                 select: { id: true, name: true, categoryId: true },
@@ -105,7 +118,6 @@ export class WorkoutPlansService {
         skip,
         include: {
           exercises: {
-            // Removido where deletedAt daqui
             include: {
               exercise: {
                 select: { id: true, name: true, categoryId: true },
@@ -136,7 +148,6 @@ export class WorkoutPlansService {
       },
       include: {
         exercises: {
-          // Removido where deletedAt daqui
           include: {
             exercise: {
               include: {
@@ -160,8 +171,8 @@ export class WorkoutPlansService {
   async update(id: string, userId: string, dto: UpdateWorkoutPlanDto) {
     await this.findOne(id, userId);
 
-    if (dto.exerciseIds) {
-      await this.validateExercisesAccessibility(dto.exerciseIds, userId);
+    if (dto.exercises) {
+      await this.validateExercisesAccessibility(dto.exercises, userId);
     }
 
     try {
@@ -173,17 +184,20 @@ export class WorkoutPlansService {
           },
         });
 
-        if (dto.exerciseIds !== undefined) {
-          // CORRIGIDO: Agora removemos fisicamente os vínculos antigos usando deleteMany
+        if (dto.exercises !== undefined) {
+          // Remove fisicamente as conexões antigas
           await tx.workoutPlanExercise.deleteMany({
             where: { workoutPlanId: id },
           });
 
-          if (dto.exerciseIds.length > 0) {
+          if (dto.exercises.length > 0) {
             await tx.workoutPlanExercise.createMany({
-              data: dto.exerciseIds.map((exerciseId) => ({
+              data: dto.exercises.map((item) => ({
                 workoutPlanId: id,
-                exerciseId,
+                exerciseId: item.exerciseId,
+                targetSets: item.targetSets,
+                targetMinReps: item.targetMinReps,
+                targetMaxReps: item.targetMaxReps,
               })),
             });
           }
@@ -224,7 +238,6 @@ export class WorkoutPlansService {
           data: { deletedAt: now },
         });
 
-        // CORRIGIDO: Limpa fisicamente as associações quando o treino é removido
         await tx.workoutPlanExercise.deleteMany({
           where: { workoutPlanId: id },
         });

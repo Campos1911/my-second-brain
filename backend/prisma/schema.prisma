@@ -140,11 +140,16 @@ model WorkoutPlanExercise {
   workoutPlan   WorkoutPlan @relation(fields: [workoutPlanId], references: [id])
   exerciseId    String
   exercise      Exercise    @relation(fields: [exerciseId], references: [id])
+  
+  targetSets    Int         @default(0) // Quantidade obrigatória de séries recomendada
+  targetMinReps Int         @default(0) // Repetições mínimas obrigatórias
+  targetMaxReps Int         @default(0) // Repetições máximas obrigatórias
+
   createdAt     DateTime    @default(now())
 
   @@unique([workoutPlanId, exerciseId])
-  @@index([workoutPlanId]) // Índice ajustado
-  @@index([exerciseId]) // Índice ajustado
+  @@index([workoutPlanId])
+  @@index([exerciseId])
 }
 
 model WorkoutSession {

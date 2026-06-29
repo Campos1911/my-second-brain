@@ -519,14 +519,6 @@ export type SetLogUncheckedUpdateManyWithoutWorkoutSessionNestedInput = {
   deleteMany?: Prisma.SetLogScalarWhereInput | Prisma.SetLogScalarWhereInput[]
 }
 
-export type IntFieldUpdateOperationsInput = {
-  set?: number
-  increment?: number
-  decrement?: number
-  multiply?: number
-  divide?: number
-}
-
 export type SetLogCreateWithoutExerciseInput = {
   id?: string
   reps: number

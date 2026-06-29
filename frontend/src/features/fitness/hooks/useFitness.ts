@@ -235,18 +235,34 @@ export function useLinkExerciseToPlan() {
     mutationFn: async ({
       planId,
       exerciseId,
-      currentExerciseIds,
+      currentExercises,
+      targetSets,
+      targetMinReps,
+      targetMaxReps,
     }: {
       planId: string;
       exerciseId: string;
-      currentExerciseIds: string[];
+      currentExercises: {
+        exerciseId: string;
+        targetSets: number;
+        targetMinReps: number;
+        targetMaxReps: number;
+      }[];
+      targetSets: number;
+      targetMinReps: number;
+      targetMaxReps: number;
     }) => {
-      // Evita duplicidades na lista de ids
-      const updatedExerciseIds = Array.from(
-        new Set([...currentExerciseIds, exerciseId]),
+      // Evita duplicidades na lista de envio
+      const filteredCurrent = currentExercises.filter(
+        (ex) => ex.exerciseId !== exerciseId,
       );
+      const updatedExercises = [
+        ...filteredCurrent,
+        { exerciseId, targetSets, targetMinReps, targetMaxReps },
+      ];
+
       return fitnessService.updatePlan(planId, {
-        exerciseIds: updatedExerciseIds,
+        exercises: updatedExercises,
       });
     },
     onSuccess: (updatedPlan) => {
@@ -265,18 +281,24 @@ export function useUnlinkExerciseFromPlan() {
     mutationFn: async ({
       planId,
       exerciseId,
-      currentExerciseIds,
+      currentExercises,
     }: {
       planId: string;
       exerciseId: string;
-      currentExerciseIds: string[];
+      currentExercises: {
+        exerciseId: string;
+        targetSets: number;
+        targetMinReps: number;
+        targetMaxReps: number;
+      }[];
     }) => {
-      // Remove o ID do exercício da listagem associada
-      const updatedExerciseIds = currentExerciseIds.filter(
-        (id) => id !== exerciseId,
+      // Remove o exercício correspondente e reconstrói o array com o formato esperado pelo backend
+      const updatedExercises = currentExercises.filter(
+        (ex) => ex.exerciseId !== exerciseId,
       );
+
       return fitnessService.updatePlan(planId, {
-        exerciseIds: updatedExerciseIds,
+        exercises: updatedExercises,
       });
     },
     onSuccess: (updatedPlan) => {

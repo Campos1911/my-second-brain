@@ -28,6 +28,7 @@ interface WorkoutPlanCardProps {
   onToggle: () => void;
   onStartWorkout: (planId: string) => void;
   isStartingWorkout?: boolean;
+  onEditPlan: (plan: WorkoutPlan) => void; // Callback inserido
 }
 
 export function WorkoutPlanCard({
@@ -36,6 +37,7 @@ export function WorkoutPlanCard({
   onToggle,
   onStartWorkout,
   isStartingWorkout = false,
+  onEditPlan,
 }: WorkoutPlanCardProps) {
   const [isAddExerciseOpen, setIsAddExerciseOpen] = useState(false);
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
@@ -55,10 +57,16 @@ export function WorkoutPlanCard({
   };
 
   const handleUnlinkExercise = (exerciseId: string) => {
+    // Reconstrói a lista mapeando as metas físicas atuais para desvincular o exercício unitário via mutation
     unlinkExercise({
       planId: plan.id,
       exerciseId,
-      currentExerciseIds: exercises.map((e) => e.id),
+      currentExercises: exercises.map((e) => ({
+        exerciseId: e.id,
+        targetSets: e.targetSets || 3,
+        targetMinReps: e.targetMinReps || 8,
+        targetMaxReps: e.targetMaxReps || 12,
+      })),
     });
   };
 
@@ -81,7 +89,7 @@ export function WorkoutPlanCard({
           <button
             onClick={() => onStartWorkout(plan.id)}
             disabled={isStartingWorkout}
-            className="p-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl transition-all active:scale-95 flex items-center justify-center gap-1 text-xs font-semibold shadow-md shadow-purple-500/15 cursor-pointer"
+            className="p-2.5 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white rounded-xl transition-all active:scale-[0.97] flex items-center justify-center gap-1 text-xs font-semibold shadow-md shadow-purple-500/15 cursor-pointer"
             title="Iniciar Sessão de Treino"
           >
             {isStartingWorkout ? (
@@ -133,19 +141,30 @@ export function WorkoutPlanCard({
                   </p>
                 </div>
               ) : (
-                <ul className="space-y-1.5">
+                <ul className="space-y-2">
                   {exercises.map((ex) => {
                     const isGlobal = !ex.userId;
                     return (
                       <li
                         key={ex.id}
-                        className="flex items-center justify-between p-2.5 bg-zinc-950/40 rounded-xl border border-zinc-800/50 group"
+                        className="flex items-center justify-between p-3 bg-zinc-950/40 rounded-xl border border-zinc-800/50 group"
                       >
-                        <span className="text-sm text-zinc-300 font-medium">
-                          {ex.name}
-                        </span>
+                        <div className="min-w-0 flex-1 pr-3">
+                          <span className="text-sm text-zinc-250 font-bold block">
+                            {ex.name}
+                          </span>
+                          {ex.targetSets &&
+                            ex.targetMinReps &&
+                            ex.targetMaxReps && (
+                              /* Exibição limpa das metas cadastradas conforme especificação */
+                              <span className="text-xs text-purple-400 mt-0.5 block font-semibold">
+                                {ex.targetSets} séries de {ex.targetMinReps} a{" "}
+                                {ex.targetMaxReps} repetições
+                              </span>
+                            )}
+                        </div>
+
                         <div className="flex items-center gap-1 shrink-0">
-                          {/* Impede a edição de exercícios globais do sistema */}
                           {!isGlobal && (
                             <button
                               onClick={() => setExerciseToEdit(ex)}
@@ -156,7 +175,6 @@ export function WorkoutPlanCard({
                             </button>
                           )}
 
-                          {/* Desassocia o exercício sem deletar o registro da tabela global */}
                           <button
                             onClick={() => handleUnlinkExercise(ex.id)}
                             disabled={isUnlinking}
@@ -176,7 +194,17 @@ export function WorkoutPlanCard({
                 </ul>
               )}
 
-              <div className="flex justify-end pt-2 border-t border-zinc-800/40">
+              <div className="flex justify-between items-center pt-2 border-t border-zinc-800/40">
+                {/* Botão de Edição da Ficha Completa */}
+                <button
+                  onClick={() => onEditPlan(plan)}
+                  className="text-xs text-zinc-500 hover:text-purple-400 flex items-center gap-1 py-1.5 px-2.5 hover:bg-purple-500/5 rounded-lg transition-all cursor-pointer"
+                >
+                  <Pencil className="w-3.5 h-3.5" />
+                  Editar Ficha
+                </button>
+
+                {/* Exclusão do Plano */}
                 {deleteConfirmId === plan.id ? (
                   <div className="flex items-center gap-2 bg-rose-500/5 border border-rose-500/20 px-3 py-1.5 rounded-xl">
                     <span className="text-xs text-rose-400 font-medium flex items-center gap-1">
