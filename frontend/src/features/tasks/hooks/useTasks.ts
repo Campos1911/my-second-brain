@@ -1,6 +1,12 @@
 import { useState, useEffect, useCallback } from "react";
 import { tasksService } from "../services/tasksService";
-import { Task, CreateTaskDTO, UpdateTaskDTO, FindTasksQuery } from "../types";
+import {
+  Task,
+  CreateTaskDTO,
+  UpdateTaskDTO,
+  FindTasksQuery,
+  TaskStatus,
+} from "../types";
 
 export function useTasks() {
   const [tasks, setTasks] = useState<Task[]>([]);
@@ -12,6 +18,7 @@ export function useTasks() {
     limit: 10,
     search: "",
     priority: undefined,
+    status: undefined,
   });
 
   const fetchTasks = useCallback(async () => {
@@ -44,6 +51,19 @@ export function useTasks() {
     fetchTasks();
   };
 
+  const updateTaskStatus = async (id: string, status: TaskStatus) => {
+    const originalTasks = [...tasks];
+
+    setTasks((prev) => prev.map((t) => (t.id === id ? { ...t, status } : t)));
+
+    try {
+      await tasksService.update(id, { status });
+    } catch (error) {
+      console.error("Erro ao atualizar status da tarefa na API:", error);
+      setTasks(originalTasks);
+    }
+  };
+
   const deleteTask = async (id: string) => {
     await tasksService.delete(id);
     setTasks((prev) => prev.filter((t) => t.id !== id));
@@ -59,6 +79,7 @@ export function useTasks() {
     setFilters,
     createTask,
     updateTask,
+    updateTaskStatus,
     deleteTask,
     refresh: fetchTasks,
   };
