@@ -1,6 +1,6 @@
 "use client";
 
-import { useForm, Controller } from "react-hook-form";
+import { useForm, Controller, Resolver } from "react-hook-form"; // Importado 'Resolver'
 import { zodResolver } from "@hookform/resolvers/zod";
 import { createTaskSchema, CreateTaskDTO, Task } from "../types";
 import { Loader2 } from "lucide-react";
@@ -22,14 +22,17 @@ export function TaskForm({
   const {
     register,
     handleSubmit,
-    control, // Necessário para gerenciar o componente customizado com o Controller
+    control,
     formState: { errors },
   } = useForm<CreateTaskDTO>({
-    resolver: zodResolver(createTaskSchema),
+    // Coerção de tipo para alinhar o resolver do Zod ao formato estrito de CreateTaskDTO
+    resolver: zodResolver(createTaskSchema) as Resolver<CreateTaskDTO>,
     defaultValues: {
       title: initialData?.title || "",
       description: initialData?.description || "",
       priority: initialData?.priority || "MEDIUM",
+      // Adicionado status para garantir compatibilidade com as propriedades exigidas pelo CreateTaskDTO
+      status: initialData?.status || "TODO",
       startDate: initialData?.startDate
         ? new Date(initialData.startDate).toISOString().split("T")[0]
         : "",
@@ -73,7 +76,6 @@ export function TaskForm({
         )}
       </div>
 
-      {/* Substituição do select nativo pelo componente customizado */}
       <div>
         <Controller
           control={control}
