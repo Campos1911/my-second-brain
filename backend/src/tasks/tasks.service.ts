@@ -23,6 +23,7 @@ export class TasksService {
           title: dto.title,
           description: dto.description,
           priority: dto.priority,
+          status: dto.status, // <-- Mapeia o status do DTO (ou usará default TODO se nulo)
           startDate: dto.startDate,
           endDate: dto.endDate,
           userId,
@@ -35,7 +36,7 @@ export class TasksService {
   }
 
   async findAll(userId: string, query: FindTasksQueryDto) {
-    const { page = 1, limit = 20, search, priority } = query;
+    const { page = 1, limit = 20, search, priority, status } = query; // <-- Extraído status
     const skip = (page - 1) * limit;
 
     const whereClause: Prisma.TaskWhereInput = {
@@ -52,6 +53,11 @@ export class TasksService {
 
     if (priority) {
       whereClause.priority = priority;
+    }
+
+    if (status) {
+      // <-- Aplica filtro de status se enviado na requisição
+      whereClause.status = status;
     }
 
     try {
@@ -105,6 +111,7 @@ export class TasksService {
           title: dto.title,
           description: dto.description,
           priority: dto.priority,
+          status: dto.status, // <-- Permite alterar status via PATCH
           startDate: dto.startDate,
           endDate: dto.endDate,
         },

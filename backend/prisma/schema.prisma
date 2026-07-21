@@ -189,11 +189,18 @@ enum TaskPriority {
   HIGH
 }
 
+enum TaskStatus {
+  TODO
+  IN_PROGRESS
+  DONE
+}
+
 model Task {
   id          String       @id @default(uuid())
   title       String
   description String?
   priority    TaskPriority @default(MEDIUM)
+  status      TaskStatus   @default(TODO)
   startDate   DateTime?
   endDate     DateTime?
   createdAt   DateTime     @default(now())
@@ -203,5 +210,5 @@ model Task {
   userId String
   user   User   @relation(fields: [userId], references: [id])
 
-  @@index([userId, priority, deletedAt])
+  @@index([userId, priority, status, deletedAt]) 
 }
