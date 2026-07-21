@@ -50,6 +50,8 @@ export default function FitnessDashboardPage() {
     null,
   );
   const [selectedExerciseId, setSelectedExerciseId] = useState<string>("");
+  const { data: selectorExercisesData } = useExercises({ limit: 100 });
+  const selectorExercises = selectorExercisesData?.data || [];
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
   const [expandedPlanId, setExpandedPlanId] = useState<string | null>(null);
 
@@ -242,7 +244,7 @@ export default function FitnessDashboardPage() {
                     onToggle={() => handleTogglePlan(p.id)}
                     onStartWorkout={handleStartSession}
                     isStartingWorkout={isStartingSession}
-                    onEditPlan={(selectedPlan) => setPlanToEdit(selectedPlan)} // Callback integrado
+                    onEditPlan={(selectedPlan) => setPlanToEdit(selectedPlan)}
                   />
                 ))}
               </div>
@@ -250,7 +252,6 @@ export default function FitnessDashboardPage() {
           </div>
         )}
 
-        {/* Demais Abas ... */}
         {activeTab === "LIBRARY" && (
           <div className="space-y-5">
             <div className="flex gap-2.5">
@@ -360,7 +361,113 @@ export default function FitnessDashboardPage() {
           </div>
         )}
 
-        {/* Tabs de Histórico e Evolução preservados ... */}
+        {/* ABA DE HISTÓRICO IMPLEMENTADA */}
+        {activeTab === "HISTORY" && (
+          <div className="space-y-4">
+            {isLoadingHistory ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div
+                    key={i}
+                    className="h-20 bg-zinc-900/40 border border-zinc-800/60 rounded-2xl animate-pulse"
+                  />
+                ))}
+              </div>
+            ) : history.length === 0 ? (
+              <div className="py-16 text-center border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/10">
+                <Calendar className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-zinc-400">
+                  Nenhum treino realizado ainda
+                </p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Inicie e finalize uma sessão de treino para manter registros
+                  aqui.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {history.map((session) => (
+                  <div
+                    key={session.id}
+                    onClick={() => setSelectedSessionId(session.id)}
+                    className="flex items-center justify-between p-4 bg-zinc-900/40 border border-zinc-800 rounded-xl hover:border-purple-500/30 transition-all cursor-pointer group"
+                  >
+                    <div className="min-w-0 flex-1 pr-3">
+                      <h4 className="font-bold text-sm text-zinc-200 group-hover:text-purple-400 transition-colors truncate">
+                        {session.workoutPlan?.name || "Plano de Treino"}
+                      </h4>
+                      <p className="text-xs text-zinc-500 mt-1">
+                        {parseUTCToLocalDate(
+                          session.startedAt,
+                        ).toLocaleDateString("pt-BR")}{" "}
+                        às{" "}
+                        {new Date(session.startedAt).toLocaleTimeString(
+                          "pt-BR",
+                          { hour: "2-digit", minute: "2-digit" },
+                        )}
+                      </p>
+                    </div>
+                    <div className="text-right shrink-0">
+                      <span className="text-xs font-semibold text-zinc-400 bg-zinc-950 border border-zinc-850 px-2.5 py-1.5 rounded-lg">
+                        {session._count?.setLogs || 0} séries
+                      </span>
+                    </div>
+                  </div>
+                ))}
+
+                <Pagination
+                  currentPage={currentPage}
+                  lastPage={historyMeta.lastPage}
+                  onPageChange={(page) => setCurrentPage(page)}
+                />
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ABA DE EVOLUÇÃO (ANALYTICS) IMPLEMENTADA */}
+        {activeTab === "ANALYTICS" && (
+          <div className="space-y-6">
+            <div className="space-y-2">
+              <label className="text-xs font-semibold text-zinc-350">
+                Selecione o Exercício para Evolução
+              </label>
+              <select
+                value={selectedExerciseId}
+                onChange={(e) => setSelectedExerciseId(e.target.value)}
+                className="w-full bg-zinc-950 border border-zinc-800 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-purple-600/50 focus:border-purple-500 outline-none transition-all text-zinc-200"
+              >
+                <option value="" className="text-zinc-650">
+                  Escolha um exercício...
+                </option>
+                {selectorExercises.map((ex) => (
+                  <option
+                    key={ex.id}
+                    value={ex.id}
+                    className="bg-zinc-900 text-zinc-100"
+                  >
+                    {ex.name} ({ex.category?.name || "Sem categoria"})
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {selectedExerciseId ? (
+              <ExerciseProgressChart exerciseId={selectedExerciseId} />
+            ) : (
+              <div className="py-16 text-center border border-dashed border-zinc-800 rounded-2xl bg-zinc-900/10">
+                <TrendingUp className="w-8 h-8 text-zinc-600 mx-auto mb-2" />
+                <p className="text-sm font-medium text-zinc-400">
+                  Selecione um exercício
+                </p>
+                <p className="text-xs text-zinc-500 mt-1">
+                  Selecione um exercício acima para visualizar seu progresso de
+                  força e volume total.
+                </p>
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Modais Globais */}
